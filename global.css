@@ -1,0 +1,9 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Web only: the custom Field components draw their own focus ring. */
+input:focus,
+textarea:focus {
+  outline: none;
+}

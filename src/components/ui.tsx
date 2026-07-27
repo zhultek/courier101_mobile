@@ -1,0 +1,583 @@
+import React, { useEffect, useRef, useState } from 'react';
+import {
+  ActivityIndicator,
+  Animated,
+  FlatList,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  TextInputProps,
+  TextStyle,
+  View,
+  ViewStyle,
+} from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Icon, IconName } from './Icon';
+import { useUi } from '../store/ui';
+
+/**
+ * Split an amount into sign / comma-grouped dollars / cents.
+ * Accepts numbers or numeric strings, including ones already carrying
+ * "$"/"," decorations (the calculator API returns pre-formatted strings).
+ */
+export function moneyParts(value: number | string | null | undefined): {
+  sign: string;
+  dollars: string;
+  cents: string;
+} {
+  const n =
+    typeof value === 'string'
+      ? Number(value.replace(/[^0-9.-]/g, ''))
+      : Number(value ?? 0);
+  const safe = Number.isFinite(n) ? n : 0;
+  const [dollars, cents] = Math.abs(safe).toFixed(2).split('.');
+  return {
+    sign: safe < 0 ? '-' : '',
+    dollars: dollars.replace(/\B(?=(\d{3})+(?!\d))/g, ','),
+    cents,
+  };
+}
+
+/** Format a numeric (or numeric-string) amount as $X,XXX.XX. */
+export function money(value: number | string | null | undefined): string {
+  const { sign, dollars, cents } = moneyParts(value);
+  return `${sign}$${dollars}.${cents}`;
+}
+
+/** Lining tabular figures so amounts align and don't wobble. */
+export const tabularNums: TextStyle = { fontVariant: ['tabular-nums'] };
+
+// boxShadow (RN 0.76+) instead of the deprecated shadow* props: on the New
+// Architecture, toggling shadow* forces the native view to be recreated,
+// which blurs any focused TextInput inside it.
+export const cardShadow: ViewStyle = {
+  boxShadow:
+    '0px 1px 2px rgba(15, 23, 42, 0.04), 0px 10px 24px rgba(15, 23, 42, 0.06)',
+};
+
+export const buttonShadow: ViewStyle = {
+  boxShadow:
+    '0px 2px 4px rgba(37, 99, 235, 0.2), 0px 10px 20px rgba(37, 99, 235, 0.32)',
+};
+
+export const heroShadow: ViewStyle = {
+  boxShadow:
+    '0px 2px 4px rgba(11, 22, 51, 0.18), 0px 14px 32px rgba(11, 22, 51, 0.32)',
+};
+
+export function GradientScreen({
+  children,
+  scroll = true,
+}: {
+  children: React.ReactNode;
+  scroll?: boolean;
+}) {
+  return (
+    <LinearGradient
+      colors={['#E7EEFC', '#F8FAFC', '#F8FAFC']}
+      start={{ x: 0.5, y: 0 }}
+      end={{ x: 0.5, y: 0.55 }}
+      style={{ flex: 1 }}
+    >
+      <SafeAreaView className="flex-1">
+        {scroll ? (
+          <KeyboardAvoidingView
+            className="flex-1"
+            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          >
+            <ScrollView
+              className="flex-1 px-5"
+              contentContainerStyle={{ paddingBottom: 40 }}
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={false}
+            >
+              {children}
+            </ScrollView>
+          </KeyboardAvoidingView>
+        ) : (
+          <View className="flex-1 px-5">{children}</View>
+        )}
+      </SafeAreaView>
+    </LinearGradient>
+  );
+}
+
+interface FieldProps extends TextInputProps {
+  icon?: IconName;
+  error?: string;
+  label?: string;
+}
+
+// Focus/error styling on fields must go through `style`, never through a
+// conditional className: NativeWind v4 remounts the subtree when the class
+// string changes, which blurs the TextInput the instant it gains focus.
+const fieldStateStyle = {
+  idle: { borderColor: 'transparent', backgroundColor: '#F1F5F9' },
+  focused: { borderColor: '#2563EB', backgroundColor: '#FFFFFF' },
+  error: { borderColor: '#DC2626', backgroundColor: '#FFFFFF' },
+} as const;
+
+export function Field({ icon, error, label, onFocus, onBlur, ...props }: FieldProps) {
+  const [focused, setFocused] = useState(false);
+  const state = error ? 'error' : focused ? 'focused' : 'idle';
+  return (
+    <View className="mb-4">
+      {label ? (
+        <Text className="font-semibold text-ink text-sm mb-1.5 ml-1">{label}</Text>
+      ) : null}
+      <View
+        className="flex-row items-center rounded-2xl px-4 py-1 border-[1.5px]"
+        style={[fieldStateStyle[state], focused ? cardShadow : null]}
+      >
+        {icon ? (
+          <Icon name={icon} size={20} color={focused ? '#2563EB' : '#94A3B8'} />
+        ) : null}
+        <TextInput
+          className="flex-1 py-3.5 px-3 text-base font-normal text-ink"
+          placeholderTextColor="#94A3B8"
+          {...props}
+          onFocus={(e) => {
+            setFocused(true);
+            onFocus?.(e);
+          }}
+          onBlur={(e) => {
+            setFocused(false);
+            onBlur?.(e);
+          }}
+        />
+      </View>
+      {error ? (
+        <Text className="mt-1.5 ml-1 text-[13px] font-medium text-danger">{error}</Text>
+      ) : null}
+    </View>
+  );
+}
+
+export function PasswordField({
+  icon = 'lock',
+  error,
+  label,
+  onFocus,
+  onBlur,
+  ...props
+}: FieldProps) {
+  const [visible, setVisible] = useState(false);
+  const [focused, setFocused] = useState(false);
+  const state = error ? 'error' : focused ? 'focused' : 'idle';
+  return (
+    <View className="mb-4">
+      {label ? (
+        <Text className="font-semibold text-ink text-sm mb-1.5 ml-1">{label}</Text>
+      ) : null}
+      <View
+        className="flex-row items-center rounded-2xl px-4 py-1 border-[1.5px]"
+        style={[fieldStateStyle[state], focused ? cardShadow : null]}
+      >
+        <Icon name={icon} size={20} color={focused ? '#2563EB' : '#94A3B8'} />
+        <TextInput
+          className="flex-1 py-3.5 px-3 text-base font-normal text-ink"
+          placeholderTextColor="#94A3B8"
+          secureTextEntry={!visible}
+          autoCapitalize="none"
+          {...props}
+          onFocus={(e) => {
+            setFocused(true);
+            onFocus?.(e);
+          }}
+          onBlur={(e) => {
+            setFocused(false);
+            onBlur?.(e);
+          }}
+        />
+        <Pressable
+          onPress={() => setVisible((v) => !v)}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel={visible ? 'Hide password' : 'Show password'}
+        >
+          <Icon name={visible ? 'eye' : 'eye-off'} size={20} color="#94A3B8" />
+        </Pressable>
+      </View>
+      {error ? (
+        <Text className="mt-1.5 ml-1 text-[13px] font-medium text-danger">{error}</Text>
+      ) : null}
+    </View>
+  );
+}
+
+export function PrimaryButton({
+  title,
+  onPress,
+  loading,
+  disabled,
+  className = '',
+}: {
+  title: string;
+  onPress: () => void;
+  loading?: boolean;
+  disabled?: boolean;
+  className?: string;
+}) {
+  return (
+    <Pressable
+      onPress={onPress}
+      disabled={disabled || loading}
+      className={`rounded-full bg-primary py-4 flex-row items-center justify-center active:bg-primary-dark ${
+        disabled || loading ? 'opacity-60' : ''
+      } ${className}`}
+      style={({ pressed }) => [
+        disabled || loading ? null : buttonShadow,
+        { transform: [{ scale: pressed ? 0.97 : 1 }] },
+      ]}
+    >
+      {loading ? (
+        <ActivityIndicator color="#fff" />
+      ) : (
+        <>
+          <Text className="text-white text-base font-semibold">{title}</Text>
+          <Icon name="arrow-right" size={18} color="#fff" style={{ marginLeft: 8 }} />
+        </>
+      )}
+    </Pressable>
+  );
+}
+
+export function Card({
+  children,
+  className = '',
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <View
+      className={`rounded-3xl bg-white border border-line/60 p-4 ${className}`}
+      style={cardShadow}
+    >
+      {children}
+    </View>
+  );
+}
+
+/** Sentence-case section heading with an accent tick. */
+export function SectionLabel({
+  title,
+  action,
+  onAction,
+  className = '',
+}: {
+  title: string;
+  action?: string;
+  onAction?: () => void;
+  className?: string;
+}) {
+  return (
+    <View className={`flex-row items-end justify-between mb-3 ${className}`}>
+      <View className="flex-row items-center flex-1 pr-3">
+        <View className="w-1.5 h-4 rounded-full bg-accent mr-2.5" />
+        <Text className="font-bold text-ink text-[17px]" numberOfLines={1}>
+          {title}
+        </Text>
+      </View>
+      {action && onAction ? (
+        <Pressable onPress={onAction} hitSlop={8} className="flex-row items-center">
+          <Text className="text-primary font-semibold text-sm">{action}</Text>
+          <Icon name="arrow-up-right" size={15} color="#2563EB" />
+        </Pressable>
+      ) : null}
+    </View>
+  );
+}
+
+/** Rounded square icon holder with a tinted background. */
+export function IconTile({
+  icon,
+  tint = 'primary',
+  size = 'md',
+}: {
+  icon: IconName;
+  tint?: 'primary' | 'accent' | 'success' | 'navy';
+  size?: 'sm' | 'md';
+}) {
+  const tints = {
+    primary: { bg: 'bg-primary-light', color: '#2563EB' },
+    accent: { bg: 'bg-accent-light', color: '#F97316' },
+    success: { bg: 'bg-success-light', color: '#059669' },
+    navy: { bg: 'bg-navy', color: '#FFFFFF' },
+  } as const;
+  const t = tints[tint];
+  const box = size === 'sm' ? 'w-10 h-10 rounded-xl' : 'w-12 h-12 rounded-2xl';
+  return (
+    <View className={`${box} ${t.bg} items-center justify-center`}>
+      <Icon name={icon} size={size === 'sm' ? 18 : 21} color={t.color} />
+    </View>
+  );
+}
+
+export function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <View className="flex-row justify-between items-center py-2.5">
+      <Text className="font-normal text-muted text-base">{label}</Text>
+      <Text
+        className="font-medium text-ink text-base text-right flex-shrink ml-4"
+        style={tabularNums}
+      >
+        {value}
+      </Text>
+    </View>
+  );
+}
+
+interface SelectOption {
+  label: string;
+  value: string;
+}
+
+export function SelectField({
+  icon = 'map',
+  placeholder,
+  label,
+  value,
+  options,
+  onChange,
+  error,
+  compact,
+}: {
+  icon?: IconName;
+  placeholder: string;
+  label?: string;
+  value?: string;
+  options: SelectOption[];
+  onChange: (value: string) => void;
+  error?: string;
+  compact?: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const selected = options.find((o) => o.value === value);
+  return (
+    <View className={compact ? 'flex-1 mb-4' : 'mb-4'}>
+      {label ? (
+        <Text className="font-semibold text-ink text-sm mb-1.5 ml-1">{label}</Text>
+      ) : null}
+      <Pressable
+        onPress={() => setOpen(true)}
+        className="flex-row items-center rounded-2xl px-4 py-4 border-[1.5px] active:border-primary active:bg-white"
+        style={error ? fieldStateStyle.error : fieldStateStyle.idle}
+      >
+        <Icon name={icon} size={20} color="#94A3B8" />
+        <Text
+          className={selected ? 'flex-1 px-3 text-base font-normal text-ink' : 'flex-1 px-3 text-base font-normal text-faint'}
+          numberOfLines={1}
+        >
+          {selected?.label ?? placeholder}
+        </Text>
+        <Icon name="chevron-down" size={20} color="#94A3B8" />
+      </Pressable>
+      {error ? (
+        <Text className="mt-1.5 ml-1 text-[13px] font-medium text-danger">{error}</Text>
+      ) : null}
+      <Modal visible={open} animationType="slide" transparent>
+        <Pressable className="flex-1 bg-navy/60" onPress={() => setOpen(false)}>
+          <View className="mt-auto rounded-t-[28px] bg-white p-5 max-h-[70%]">
+            <View className="self-center w-10 h-1 rounded-full bg-line mb-4" />
+            <Text className="text-lg font-semibold text-ink mb-3">{placeholder}</Text>
+            <FlatList
+              data={options}
+              keyExtractor={(o) => o.value}
+              renderItem={({ item }) => (
+                <Pressable
+                  onPress={() => {
+                    onChange(item.value);
+                    setOpen(false);
+                  }}
+                  className={`py-3.5 px-3 -mx-1 rounded-xl flex-row justify-between items-center active:bg-surface ${
+                    item.value === value ? 'bg-primary-light' : ''
+                  }`}
+                >
+                  <Text
+                    className={`text-base ${
+                      item.value === value
+                        ? 'font-semibold text-primary'
+                        : 'font-normal text-ink'
+                    }`}
+                  >
+                    {item.label}
+                  </Text>
+                  {item.value === value ? (
+                    <Icon name="check" size={18} color="#2563EB" />
+                  ) : null}
+                </Pressable>
+              )}
+            />
+          </View>
+        </Pressable>
+      </Modal>
+    </View>
+  );
+}
+
+/** Tones for StatusChip; each pairs a tinted pill with a solid dot. */
+const chipTones = {
+  primary: { bg: 'bg-primary-light', text: 'text-primary', dot: '#2563EB' },
+  accent: { bg: 'bg-accent-light', text: 'text-accent', dot: '#F97316' },
+  success: { bg: 'bg-success-light', text: 'text-success', dot: '#059669' },
+  danger: { bg: 'bg-danger-light', text: 'text-danger', dot: '#DC2626' },
+  neutral: { bg: 'bg-surface', text: 'text-muted', dot: '#64748B' },
+} as const;
+
+/** Small status pill with a leading dot indicator. */
+export function StatusChip({
+  label,
+  tone = 'primary',
+  className = '',
+}: {
+  label: string;
+  tone?: keyof typeof chipTones;
+  className?: string;
+}) {
+  const t = chipTones[tone];
+  return (
+    <View
+      className={`self-start flex-row items-center rounded-full px-3 py-1.5 ${t.bg} ${className}`}
+    >
+      <View
+        className="w-1.5 h-1.5 rounded-full mr-2"
+        style={{ backgroundColor: t.dot }}
+      />
+      <Text className={`font-semibold text-[13px] ${t.text}`}>{label}</Text>
+    </View>
+  );
+}
+
+/** Soft pulsing placeholder block used while content loads. */
+export function Skeleton({
+  className = '',
+  style,
+}: {
+  className?: string;
+  style?: ViewStyle;
+}) {
+  const pulse = useRef(new Animated.Value(0.45)).current;
+  useEffect(() => {
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulse, { toValue: 1, duration: 700, useNativeDriver: true }),
+        Animated.timing(pulse, { toValue: 0.45, duration: 700, useNativeDriver: true }),
+      ])
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [pulse]);
+  return (
+    <Animated.View style={{ opacity: pulse }}>
+      <View className={`rounded-2xl bg-line/70 ${className}`} style={style} />
+    </Animated.View>
+  );
+}
+
+/** Skeleton stand-in for a list of cards — replaces the old bare spinner. */
+export function LoadingView() {
+  return (
+    <View className="py-2">
+      {[0, 1, 2].map((i) => (
+        <View
+          key={i}
+          className="rounded-3xl bg-white border border-line/60 p-4 mb-4"
+          style={cardShadow}
+        >
+          <View className="flex-row items-center mb-4">
+            <Skeleton className="w-12 h-12 rounded-2xl" />
+            <View className="flex-1 ml-3">
+              <Skeleton className="h-3.5 w-2/5 rounded-full mb-2" />
+              <Skeleton className="h-3 w-3/5 rounded-full" />
+            </View>
+          </View>
+          <Skeleton className="h-16 rounded-2xl" />
+        </View>
+      ))}
+    </View>
+  );
+}
+
+export function EmptyView({ message }: { message: string }) {
+  return (
+    <View className="items-center justify-center py-14">
+      <View className="w-20 h-20 rounded-[28px] bg-primary-light items-center justify-center mb-4 rotate-6">
+        <Icon name="package" size={30} color="#2563EB" />
+      </View>
+      <Text className="font-semibold text-ink text-base">{message}</Text>
+      <Text className="font-normal text-faint text-sm leading-5 mt-1">
+        Pull down to refresh anytime
+      </Text>
+    </View>
+  );
+}
+
+/** Compact labeled pill for "create new" actions in list headers. */
+export function AddPill({
+  onPress,
+  label = 'New',
+}: {
+  onPress: () => void;
+  label?: string;
+}) {
+  return (
+    <Pressable
+      onPress={onPress}
+      className="flex-row items-center rounded-full bg-primary pl-3.5 pr-4 py-2.5 active:bg-primary-dark"
+      style={({ pressed }) => [
+        buttonShadow,
+        { transform: [{ scale: pressed ? 0.96 : 1 }] },
+      ]}
+    >
+      <Icon name="plus" size={16} color="#fff" />
+      <Text className="text-white font-semibold text-sm ml-1">{label}</Text>
+    </Pressable>
+  );
+}
+
+export function MenuButton() {
+  const openMenu = useUi((s) => s.openMenu);
+  return (
+    <Pressable
+      onPress={openMenu}
+      className="w-11 h-11 rounded-2xl bg-white border border-line items-center justify-center active:bg-surface"
+      style={cardShadow}
+    >
+      <Icon name="menu" size={20} color="#0F172A" />
+    </Pressable>
+  );
+}
+
+export function ScreenHeader({
+  title,
+  onBack,
+  right,
+}: {
+  title: string;
+  onBack?: () => void;
+  right?: React.ReactNode;
+}) {
+  return (
+    <View className="flex-row items-center py-4">
+      {onBack ? (
+        <Pressable
+          onPress={onBack}
+          className="w-11 h-11 rounded-2xl bg-white border border-line items-center justify-center active:bg-surface"
+          style={cardShadow}
+        >
+          <Icon name="arrow-left" size={20} color="#0F172A" />
+        </Pressable>
+      ) : (
+        <View className="w-11" />
+      )}
+      <Text className="flex-1 text-center text-lg font-semibold text-ink">{title}</Text>
+      {right ?? <View className="w-11" />}
+    </View>
+  );
+}

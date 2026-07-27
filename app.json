@@ -1,25 +1,49 @@
 {
   "expo": {
-    "name": "courier101_mobile",
-    "slug": "courier101_mobile",
-    "version": "1.0.0",
+    "name": "Courier101",
+    "slug": "courier101-mobile",
+    "scheme": "courier101",
+    "version": "2.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.zhultek.courier101",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#F7F9FD",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.zhultek.courier101"
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-secure-store",
+      "expo-font",
+      "expo-sharing",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow Courier101 to access your photos so you can attach invoices to your pre-alerts.",
+          "cameraPermission": "Allow Courier101 to use the camera to photograph invoices for your pre-alerts.",
+          "microphonePermission": false
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "37411273-c3c3-444c-935a-c0374474a50c"
+      }
     }
   }
 }

@@ -1,0 +1,1295 @@
+{
+  "info": {
+    "_postman_id": "19a833a6-c4fa-4ad0-ad98-4e6491760a92",
+    "name": "Courier101 App",
+    "description": "API for mobile app",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "1384424",
+    "_collection_link": "https://go.postman.co/collection/1384424-19a833a6-c4fa-4ad0-ad98-4e6491760a92?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Login",
+      "protocolProfileBehavior": {
+        "followRedirects": false
+      },
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"email\": \"janedoetest@gmail.com\",\n    \"password\": \"EXuqeT9X\",\n    \"courier_code\": \"32142\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/login",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "login"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Register",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "first_name",
+              "value": "John",
+              "type": "text"
+            },
+            {
+              "key": "last_name",
+              "value": "Doe",
+              "type": "text"
+            },
+            {
+              "key": "email",
+              "value": "johndoe+test@gmail.com1",
+              "type": "text"
+            },
+            {
+              "key": "mobile",
+              "value": "8765555555",
+              "type": "text"
+            },
+            {
+              "key": "street_address",
+              "value": "21 Main Street",
+              "type": "text",
+              "disabled": true
+            },
+            {
+              "key": "city",
+              "value": "Kingston",
+              "type": "text",
+              "disabled": true
+            },
+            {
+              "key": "parish",
+              "value": "Kingston",
+              "type": "text",
+              "disabled": true
+            },
+            {
+              "key": "trn",
+              "value": "123456789",
+              "type": "text",
+              "disabled": true
+            },
+            {
+              "key": "password",
+              "value": "123456789",
+              "type": "text"
+            },
+            {
+              "key": "password_confirmation",
+              "value": "123456789",
+              "type": "text"
+            },
+            {
+              "key": "courier_code",
+              "value": "32142",
+              "type": "text",
+              "uuid": "0108bc88-d62d-4add-9ebc-9edf0423248f"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url}}/api/register",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "register"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Dashboard",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/dashboard",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "dashboard"
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "Dashboard",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/dashboard",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "dashboard"
+              ]
+            }
+          },
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json",
+              "description": "",
+              "type": "text"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"inTransit\": 1,\n    \"totalShipped\": 0,\n    \"accountBalance\": 100,\n    \"readyForPickupCount\": 1,\n    \"readyForPickup\": [\n        {\n            \"id\": 65656,\n            \"tracking_number\": \"987654321\",\n            \"weight\": 4,\n            \"description\": \"Shoes\",\n            \"sender\": \"Walmart\",\n            \"invoice_id\": 65613,\n            \"warehouse_code\": \"AA1702\",\n            \"location\": \"Office\",\n            \"total\": 14150,\n            \"status\": \"Active\",\n            \"created_at\": \"29/09/2023\"\n        }\n    ]\n}"
+        }
+      ]
+    },
+    {
+      "name": "Track",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/track",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "track"
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "Track",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/track",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "track"
+              ]
+            }
+          },
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json",
+              "description": "",
+              "type": "text"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"inTransit\": [\n        {\n            \"id\": 181313,\n            \"tracking_number\": \"432423423423\",\n            \"weight\": 12,\n            \"description\": \"iphone\",\n            \"sender\": \"Shein\",\n            \"invoice_id\": 180901,\n            \"warehouse_code\": \"AA3853\",\n            \"location\": \"Customs\",\n            \"total\": 3550,\n            \"status\": \"Detained\",\n            \"created_at\": \"14/01/2024\"\n        }\n    ],\n    \"totalShipped\": [],\n    \"readyForPickup\": [\n        {\n            \"id\": 65656,\n            \"tracking_number\": \"987654321\",\n            \"weight\": 4,\n            \"description\": \"Shoes\",\n            \"sender\": \"Walmart\",\n            \"invoice_id\": 65613,\n            \"warehouse_code\": \"AA1702\",\n            \"location\": \"Office\",\n            \"total\": 14150,\n            \"status\": \"Active\",\n            \"created_at\": \"29/09/2023\"\n        }\n    ]\n}"
+        }
+      ]
+    },
+    {
+      "name": "Prealert",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/prealert",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "prealert"
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "Prealert",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/prealert",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "prealert"
+              ]
+            }
+          },
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json",
+              "description": "",
+              "type": "text"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"data\": [\n        {\n            \"id\": 171110,\n            \"carrier\": \"TRX\",\n            \"tracking_number\": \"25698\",\n            \"description\": \"demo demo demo\",\n            \"status_id\": 1,\n            \"value\": 125,\n            \"files\": \"[240706]\",\n            \"created_at\": \"19-09-2024\"\n        },\n        {\n            \"id\": 164943,\n            \"carrier\": \"Korea Post\",\n            \"tracking_number\": \"555555\",\n            \"description\": \"Marks & Spencer Women Skinny Fit Denim Jegging\",\n            \"status_id\": 1,\n            \"value\": 80,\n            \"files\": \"[230178]\",\n            \"created_at\": \"09-09-2024\"\n        },\n        {\n            \"id\": 164942,\n            \"carrier\": \"DHL\",\n            \"tracking_number\": \"125685\",\n            \"description\": \".....................\",\n            \"status_id\": 1,\n            \"value\": 56,\n            \"files\": \"[230177]\",\n            \"created_at\": \"09-09-2024\"\n        },\n        {\n            \"id\": 12374,\n            \"carrier\": \"China Post\",\n            \"tracking_number\": \"123456789\",\n            \"description\": \"Demo\",\n            \"status_id\": 1,\n            \"value\": 10,\n            \"files\": \"[219320]\",\n            \"created_at\": \"10-08-2023\"\n        }\n    ]\n}"
+        }
+      ]
+    },
+    {
+      "name": "Create Prealert",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "carrier",
+              "value": "Amazon",
+              "type": "text"
+            },
+            {
+              "key": "tracking_number",
+              "value": "1234567892121212112112121ssss",
+              "type": "text"
+            },
+            {
+              "key": "description",
+              "value": "Phone",
+              "type": "text"
+            },
+            {
+              "key": "value",
+              "value": "105",
+              "type": "text"
+            },
+            {
+              "key": "invoice[]",
+              "type": "file",
+              "fileNotInWorkingDirectoryWarning": "This file isn't in your working directory. Teammates you share this request with won't be able to use this file. To make collaboration easier you can setup your working directory in Settings.",
+              "filesNotInWorkingDirectory": [
+                "/Users/nicolaus/Desktop/Test IMG/testimg.png"
+              ],
+              "src": [
+                "postman-cloud:///1f01ad9a-e25e-45b0-a814-c57d255814a1",
+                "postman-cloud:///1f01ad9a-e103-4ad0-a7d9-ff5e498beceb"
+              ]
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url}}/api/prealert/store",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "prealert",
+            "store"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Show Prealert",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/prealert/88327",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "prealert",
+            "88327"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Delivery",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/delivery",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "delivery"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Create Delivery",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "location",
+              "value": "4",
+              "type": "text"
+            },
+            {
+              "key": "delivery_date",
+              "value": "04/25/2025",
+              "type": "text"
+            },
+            {
+              "key": "parish",
+              "value": "Kingston",
+              "type": "text"
+            },
+            {
+              "key": "house_number",
+              "value": "21",
+              "type": "text"
+            },
+            {
+              "key": "street_address",
+              "value": "Kingston St",
+              "type": "text"
+            },
+            {
+              "key": "instruction",
+              "value": "Leave at the gate",
+              "type": "text"
+            },
+            {
+              "key": "items[]",
+              "value": "[\"65656\"]",
+              "type": "text",
+              "uuid": "177b33ce-7566-4cb8-831b-37446c569109"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url}}/api/delivery/store",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "delivery",
+            "store"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Show Delivery",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/delivery/18",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "delivery",
+            "18"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Delete Delivery",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/delivery/13196",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "delivery",
+            "13196"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Rate",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/rate",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "rate"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Profile",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/profile",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "profile"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Update Profile",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "first_name",
+              "value": "Jane",
+              "type": "text"
+            },
+            {
+              "key": "last_name",
+              "value": "Doe",
+              "type": "text"
+            },
+            {
+              "key": "mobile",
+              "value": "8765676867",
+              "type": "text"
+            },
+            {
+              "key": "street_address",
+              "value": "22 Main st",
+              "type": "text"
+            },
+            {
+              "key": "city",
+              "value": "Kingston",
+              "type": "text"
+            },
+            {
+              "key": "parish",
+              "value": "Kingston",
+              "type": "text"
+            },
+            {
+              "key": "trn",
+              "value": "123456789ss",
+              "type": "text"
+            },
+            {
+              "key": "email",
+              "value": "janedoetest@gmail.com",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url}}/api/profile",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "profile"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Update/Change Password",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "current_password",
+              "value": "123456789",
+              "type": "text"
+            },
+            {
+              "key": "password",
+              "value": "appdev$4454",
+              "type": "text"
+            },
+            {
+              "key": "password_confirmation",
+              "value": "appdev$4454",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url}}/api/password-update",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "password-update"
+          ],
+          "query": [
+            {
+              "key": "current_password",
+              "value": null,
+              "type": "text",
+              "disabled": true
+            },
+            {
+              "key": "password",
+              "value": null,
+              "type": "text",
+              "disabled": true
+            },
+            {
+              "key": "password_confirmation",
+              "value": null,
+              "type": "text",
+              "disabled": true
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "View Invoice",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/invoice/179574",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "invoice",
+            "179574"
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "View Invoice",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/invoice/179574",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "invoice",
+                "179574"
+              ]
+            }
+          },
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json",
+              "description": "",
+              "type": "text"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"data\": {\n        \"id\": 65613,\n        \"invoice_number\": \"202309093838116999925\",\n        \"date\": null,\n        \"total\": 14150,\n        \"status\": \"Not Paid\",\n        \"weight_rate\": 1400,\n        \"created_at\": \"2023-09-09T22:26:38.000000Z\",\n        \"payment_date\": null,\n        \"invoice_items\": [\n            {\n                \"quantity\": 1,\n                \"invoice_id\": 65613,\n                \"total\": 1400,\n                \"product\": \"Freight\",\n                \"created_at\": \"2023-09-09T22:26:38.000000Z\"\n            },\n            {\n                \"quantity\": 1,\n                \"invoice_id\": 65613,\n                \"total\": 6000,\n                \"product\": \"Custom Duty\",\n                \"created_at\": \"2024-04-16T22:58:13.000000Z\"\n            },\n            {\n                \"quantity\": 1,\n                \"invoice_id\": 65613,\n                \"total\": 1000,\n                \"product\": \"Service Charge\",\n                \"created_at\": \"2024-04-16T22:58:13.000000Z\"\n            },\n            {\n                \"quantity\": 1,\n                \"invoice_id\": 65613,\n                \"total\": 300,\n                \"product\": \"Barrel\",\n                \"created_at\": \"2024-04-16T22:58:13.000000Z\"\n            },\n            {\n                \"quantity\": 1,\n                \"invoice_id\": 65613,\n                \"total\": 250,\n                \"product\": \"Processing Fee\",\n                \"created_at\": \"2024-04-16T22:58:14.000000Z\"\n            },\n            {\n                \"quantity\": 1,\n                \"invoice_id\": 65613,\n                \"total\": 600,\n                \"product\": \"Late Fee\",\n                \"created_at\": \"2024-04-16T22:58:15.000000Z\"\n            },\n            {\n                \"quantity\": 1,\n                \"invoice_id\": 65613,\n                \"total\": 500,\n                \"product\": \"Delivery\",\n                \"created_at\": \"2024-05-02T03:29:39.000000Z\"\n            },\n            {\n                \"quantity\": 1,\n                \"invoice_id\": 65613,\n                \"total\": 2500,\n                \"product\": \"Handling Fee\",\n                \"created_at\": \"2024-05-02T03:29:40.000000Z\"\n            },\n            {\n                \"quantity\": 1,\n                \"invoice_id\": 65613,\n                \"total\": 800,\n                \"product\": \"Delivery\",\n                \"created_at\": \"2024-05-14T15:07:32.000000Z\"\n            },\n            {\n                \"quantity\": 1,\n                \"invoice_id\": 65613,\n                \"total\": 800,\n                \"product\": \"Delivery\",\n                \"created_at\": \"2024-12-23T15:59:43.000000Z\"\n            }\n        ],\n        \"item\": {\n            \"id\": 65656,\n            \"tracking_number\": \"987654321\",\n            \"warehouse_code\": \"AA1702\",\n            \"weight\": 4,\n            \"description\": \"Shoes\",\n            \"amount\": 1400\n        },\n        \"customer\": {\n            \"id\": 124500,\n            \"name\": \"Demo Account\",\n            \"email\": \"demoaccount@gmail.com\",\n            \"address\": \"KIngston\",\n            \"city\": \"Kingston\",\n            \"parish\": \"Kingston\"\n        },\n        \"office\": {\n            \"address\": \"3 Winchester Road\",\n            \"city\": \"Kingston 10\",\n            \"parish\": \"Kingston\",\n            \"country\": \"Jamaica\"\n        }\n    }\n}"
+        }
+      ]
+    },
+    {
+      "name": "View Item",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/item/177337",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "item",
+            "177337"
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "View Item",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/item/177337",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "item",
+                "177337"
+              ]
+            }
+          },
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json",
+              "description": "",
+              "type": "text"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"data\": {\n        \"id\": 65656,\n        \"tracking_number\": \"987654321\",\n        \"weight\": 4,\n        \"description\": \"Shoes\",\n        \"sender\": \"Walmart\",\n        \"invoice_id\": 65613,\n        \"warehouse_code\": \"AA1702\",\n        \"location\": \"Office\",\n        \"total\": 14150,\n        \"status\": \"Active\",\n        \"created_at\": \"29/09/2023\"\n    }\n}"
+        }
+      ]
+    },
+    {
+      "name": "Ready For Pickup",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/ready-for-pickup",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "ready-for-pickup"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "View File",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/file/152450",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "file",
+            "152450"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Delivery Locations",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/delivery-locations",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "delivery-locations"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Pickup Locations",
+      "protocolProfileBehavior": {
+        "disableBodyPruning": true
+      },
+      "request": {
+        "method": "GET",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"courier_code\": \"demo101\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/pickup-locations",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "pickup-locations"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Request Shop For Me",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "product_name",
+              "value": "Matte Black Faucet (Mobile Test)",
+              "type": "text"
+            },
+            {
+              "key": "value",
+              "value": "140",
+              "type": "text"
+            },
+            {
+              "key": "quantity",
+              "value": "3",
+              "type": "text"
+            },
+            {
+              "key": "product_link",
+              "value": "https://a.co/d/e6i4IaD",
+              "type": "text"
+            },
+            {
+              "key": "weight",
+              "value": "4",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url}}/api/shopforme/store",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "shopforme",
+            "store"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Shop For Me",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/shopforme",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "shopforme"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "View Shop For Me",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/shopforme/86",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "shopforme",
+            "86"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Create Authorize User",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "first_name",
+              "value": "Matte Black Faucet (Mobile Test)",
+              "type": "text"
+            },
+            {
+              "key": "last_name",
+              "value": "140",
+              "type": "text"
+            },
+            {
+              "key": "id_type",
+              "value": "3",
+              "type": "text"
+            },
+            {
+              "key": "id_number",
+              "value": "https://a.co/d/e6i4IaD",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url}}/api/authorize/store",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "authorize",
+            "store"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Authorize User",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/authorize",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "authorize"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "View Authorize User",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/authorize/1608",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "authorize",
+            "1608"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Delete Authorize User",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/authorize/1608",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "authorize",
+            "1608"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Authorize User Types",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/authorize/user/types",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "authorize",
+            "user",
+            "types"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Shipping Address",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/shipping-address",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "shipping-address"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Courier Code",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "33311|YUvmQNkrTriT29wcwYO3jCExZvNOttfbjYhbCGlm",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "code",
+              "value": "32453",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url}}/api/courier/code",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "courier",
+            "code"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Duty Categories",
+      "protocolProfileBehavior": {
+        "disableBodyPruning": true
+      },
+      "request": {
+        "method": "GET",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "code",
+              "value": "32453",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url}}/api/duty/categories",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "duty",
+            "categories"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Calculator",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "weight",
+              "value": "4",
+              "type": "text"
+            },
+            {
+              "key": "duty_id",
+              "value": "2",
+              "type": "text",
+              "uuid": "db8ecf27-d779-4e2f-a3bc-7bd1257bda55"
+            },
+            {
+              "key": "value",
+              "value": "150",
+              "type": "text",
+              "uuid": "199c5843-20f6-4827-b4cf-7ecd746c6341"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url}}/api/calculate",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "calculate"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Delete Profile",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/user/account/delete",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "user",
+            "account",
+            "delete"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Setting - Package Update",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "first_name",
+              "value": "Matte Black Faucet (Mobile Test)",
+              "type": "text"
+            },
+            {
+              "key": "last_name",
+              "value": "140",
+              "type": "text"
+            },
+            {
+              "key": "id_type",
+              "value": "3",
+              "type": "text"
+            },
+            {
+              "key": "id_number",
+              "value": "https://a.co/d/e6i4IaD",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url}}/api/setting/package-update",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "setting",
+            "package-update"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Settings - Promotional Email",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "first_name",
+              "value": "Matte Black Faucet (Mobile Test)",
+              "type": "text"
+            },
+            {
+              "key": "last_name",
+              "value": "140",
+              "type": "text"
+            },
+            {
+              "key": "id_type",
+              "value": "3",
+              "type": "text"
+            },
+            {
+              "key": "id_number",
+              "value": "https://a.co/d/e6i4IaD",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url}}/api/setting/promotional-email",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "setting",
+            "promotional-email"
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "879|pq3i0QVvCtMRgRJCn0XXgRFqnn60VW3wyczU48yj",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://kliksmart.courier101.test",
+      "type": "string",
+      "disabled": true
+    },
+    {
+      "key": "base_url",
+      "value": "https://ship101.courier101.com",
+      "type": "string"
+    }
+  ]
+}
