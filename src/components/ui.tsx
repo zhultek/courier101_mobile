@@ -57,12 +57,12 @@ export const tabularNums: TextStyle = { fontVariant: ['tabular-nums'] };
 // which blurs any focused TextInput inside it.
 export const cardShadow: ViewStyle = {
   boxShadow:
-    '0px 1px 2px rgba(15, 23, 42, 0.04), 0px 10px 24px rgba(15, 23, 42, 0.06)',
+    '0px 2px 6px rgba(15, 23, 42, 0.035)',
 };
 
 export const buttonShadow: ViewStyle = {
   boxShadow:
-    '0px 2px 4px rgba(37, 99, 235, 0.2), 0px 10px 20px rgba(37, 99, 235, 0.32)',
+    '0px 2px 6px rgba(37, 99, 235, 0.16)',
 };
 
 export const heroShadow: ViewStyle = {
@@ -79,7 +79,7 @@ export function GradientScreen({
 }) {
   return (
     <LinearGradient
-      colors={['#E7EEFC', '#F8FAFC', '#F8FAFC']}
+      colors={['#F4F7FC', '#F8FAFC', '#F8FAFC']}
       start={{ x: 0.5, y: 0 }}
       end={{ x: 0.5, y: 0.55 }}
       style={{ flex: 1 }}
@@ -226,8 +226,10 @@ export function PrimaryButton({
   return (
     <Pressable
       onPress={onPress}
+      accessibilityRole="button"
+      accessibilityState={{ disabled: !!(disabled || loading), busy: !!loading }}
       disabled={disabled || loading}
-      className={`rounded-full bg-primary py-4 flex-row items-center justify-center active:bg-primary-dark ${
+      className={`rounded-2xl bg-primary py-4 flex-row items-center justify-center active:bg-primary-dark ${
         disabled || loading ? 'opacity-60' : ''
       } ${className}`}
       style={({ pressed }) => [
@@ -256,7 +258,7 @@ export function Card({
 }) {
   return (
     <View
-      className={`rounded-3xl bg-white border border-line/60 p-4 ${className}`}
+      className={`rounded-[20px] bg-white border border-line p-4 ${className}`}
       style={cardShadow}
     >
       {children}
@@ -264,7 +266,7 @@ export function Card({
   );
 }
 
-/** Sentence-case section heading with an accent tick. */
+/** Section headings can wrap without pushing their action outside the screen. */
 export function SectionLabel({
   title,
   action,
@@ -277,17 +279,20 @@ export function SectionLabel({
   className?: string;
 }) {
   return (
-    <View className={`flex-row items-end justify-between mb-3 ${className}`}>
-      <View className="flex-row items-center flex-1 pr-3">
-        <View className="w-1.5 h-4 rounded-full bg-accent mr-2.5" />
-        <Text className="font-bold text-ink text-[17px]" numberOfLines={1}>
-          {title}
-        </Text>
-      </View>
+    <View className={`flex-row flex-wrap items-center justify-between gap-x-3 mb-3 ${className}`}>
+      <Text className="flex-1 font-semibold text-ink text-[18px]" style={{ minWidth: 140 }}>
+        {title}
+      </Text>
       {action && onAction ? (
-        <Pressable onPress={onAction} hitSlop={8} className="flex-row items-center">
-          <Text className="text-primary font-semibold text-sm">{action}</Text>
-          <Icon name="arrow-up-right" size={15} color="#2563EB" />
+        <Pressable
+          onPress={onAction}
+          accessibilityRole="button"
+          accessibilityLabel={`${action}: ${title}`}
+          hitSlop={4}
+          className="min-h-[44px] flex-row items-center"
+        >
+          <Text className="text-primary font-semibold text-sm mr-1">{action}</Text>
+          <Icon name="arrow-right" size={15} color="#2563EB" />
         </Pressable>
       ) : null}
     </View>
@@ -529,7 +534,9 @@ export function AddPill({
   return (
     <Pressable
       onPress={onPress}
-      className="flex-row items-center rounded-full bg-primary pl-3.5 pr-4 py-2.5 active:bg-primary-dark"
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      className="flex-row items-center rounded-xl bg-primary pl-3.5 pr-4 py-2.5 active:bg-primary-dark"
       style={({ pressed }) => [
         buttonShadow,
         { transform: [{ scale: pressed ? 0.96 : 1 }] },
@@ -546,6 +553,8 @@ export function MenuButton() {
   return (
     <Pressable
       onPress={openMenu}
+      accessibilityRole="button"
+      accessibilityLabel="Open menu"
       className="w-11 h-11 rounded-2xl bg-white border border-line items-center justify-center active:bg-surface"
       style={cardShadow}
     >
@@ -564,20 +573,25 @@ export function ScreenHeader({
   right?: React.ReactNode;
 }) {
   return (
-    <View className="flex-row items-center py-4">
+    <View className="flex-row flex-wrap items-center gap-3 py-4">
       {onBack ? (
         <Pressable
           onPress={onBack}
+          accessibilityRole="button"
+          accessibilityLabel="Go back"
           className="w-11 h-11 rounded-2xl bg-white border border-line items-center justify-center active:bg-surface"
-          style={cardShadow}
         >
           <Icon name="arrow-left" size={20} color="#0F172A" />
         </Pressable>
-      ) : (
-        <View className="w-11" />
-      )}
-      <Text className="flex-1 text-center text-lg font-semibold text-ink">{title}</Text>
-      {right ?? <View className="w-11" />}
+      ) : null}
+      <Text
+        accessibilityRole="header"
+        className={`flex-1 font-semibold text-ink ${onBack ? 'text-xl' : 'text-[28px]'}`}
+        style={{ minWidth: 140 }}
+      >
+        {title}
+      </Text>
+      {right}
     </View>
   );
 }

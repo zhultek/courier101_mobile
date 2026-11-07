@@ -1,8 +1,10 @@
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import React, { useEffect, useState } from 'react';
+import QueryContent from '../../components/QueryContent';
 import { FlatList, Pressable, RefreshControl, Text, View } from 'react-native';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { GradientScreen, LoadingView, EmptyView, cardShadow } from '../../components/ui';
+import { GradientScreen, ScreenHeader, EmptyView, PrimaryButton } from '../../components/ui';
 import { ItemCard } from '../../components/ItemCard';
 import { useTrack } from '../../api/hooks';
 import type { AppStackParamList, MainTabParamList } from '../../navigation/types';
@@ -16,6 +18,7 @@ const TABS = [
 type TabKey = (typeof TABS)[number]['key'];
 
 export default function TrackScreen() {
+  const tabBarHeight = useBottomTabBarHeight();
   const navigation =
     useNavigation<NativeStackNavigationProp<AppStackParamList>>();
   const route = useRoute<RouteProp<MainTabParamList, 'Track'>>();
@@ -31,10 +34,8 @@ export default function TrackScreen() {
 
   return (
     <GradientScreen scroll={false}>
-      <View className="rounded-[32px] bg-white px-7 py-6 mt-2 mb-6" style={cardShadow}>
-        <Text className="text-[34px] font-bold text-ink">Track</Text>
-      </View>
-      <View className="flex-row gap-3 mb-6">
+      <ScreenHeader title="Track packages" />
+      <View className="flex-row flex-wrap gap-2 mb-4">
         {TABS.map((t) => {
           const active = tab === t.key;
           const count = track.data?.[t.key]?.length;
@@ -42,13 +43,15 @@ export default function TrackScreen() {
             <Pressable
               key={t.key}
               onPress={() => setTab(t.key)}
-              className={`flex-1 items-center px-2 py-3 rounded-full ${
-                active ? 'bg-primary active:bg-primary-dark' : 'bg-white active:bg-surface'
+              accessibilityRole="tab"
+              accessibilityState={{ selected: active }}
+              className={`items-center px-3 py-3 rounded-xl border ${
+                active ? 'bg-primary border-primary active:bg-primary-dark' : 'bg-white border-line active:bg-surface'
               }`}
-              style={active ? undefined : cardShadow}
+              style={{ flexGrow: 1, flexBasis: 86 }}
             >
               <Text
-                className={`text-[16px] font-semibold ${
+                className={`text-sm font-semibold text-center ${
                   active ? 'text-white' : 'text-muted'
                 }`}
               >
@@ -58,14 +61,12 @@ export default function TrackScreen() {
           );
         })}
       </View>
-      {track.isLoading ? (
-        <LoadingView />
-      ) : (
+      <QueryContent query={track} resource="packages">
         <FlatList
           data={items}
           keyExtractor={(i) => String(i.id)}
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: 120 }}
+          contentContainerStyle={{ paddingBottom: Math.max(120, tabBarHeight + 24) }}
           refreshControl={
             <RefreshControl
               refreshing={track.isRefetching}
@@ -73,9 +74,18 @@ export default function TrackScreen() {
             />
           }
           ListEmptyComponent={<EmptyView message="No packages here yet" />}
+          ListHeaderComponent={tab === 'readyForPickup' && track.data?.fygaroPayment ? (
+            <PrimaryButton
+              title="Make Payment"
+              className="mb-4"
+              onPress={() => navigation.navigate('FygaroPayment', { payment: track.data!.fygaroPayment! })}
+            />
+          ) : null}
           renderItem={({ item }) => (
             <ItemCard
               item={item}
+              statusLabel={tab === 'readyForPickup' ? 'Ready for pickup' : tab === 'inTransit' ? 'In transit' : 'Shipped'}
+              statusTone={tab === 'inTransit' ? 'accent' : 'success'}
               showPrice={tab === 'readyForPickup'}
               onPress={() => navigation.navigate('ItemDetails', { id: item.id })}
               onInvoicePress={
@@ -86,7 +96,7 @@ export default function TrackScreen() {
             />
           )}
         />
-      )}
+      </QueryContent>
     </GradientScreen>
   );
 }

@@ -1,4 +1,6 @@
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { NavigatorScreenParams } from '@react-navigation/native';
+import type { FygaroPayment } from '../api/types';
 
 export type AuthStackParamList = {
   CourierCode: undefined;
@@ -18,9 +20,10 @@ export type MainTabParamList = {
 };
 
 export type AppStackParamList = {
-  Tabs: undefined;
+  Tabs: NavigatorScreenParams<MainTabParamList> | undefined;
   ItemDetails: { id: number };
   Invoice: { id: number };
+  FygaroPayment: { payment: FygaroPayment };
   CreatePrealert: { trackingNumber?: string } | undefined;
   CreateDelivery: undefined;
   CreateShopForMe: undefined;

@@ -13,6 +13,7 @@ export interface UserSettings {
 }
 
 export interface User {
+  id?: number;
   first_name: string;
   last_name: string;
   email: string;
@@ -51,7 +52,13 @@ export function isInTransit(item: Pick<Item, 'location_id'>): boolean {
   return item.location_id != null && item.location_id >= 1 && item.location_id <= 3;
 }
 
+export interface FygaroPayment {
+  url: string;
+  total: number;
+}
+
 export interface DashboardData {
+  fygaroPayment?: FygaroPayment | null;
   inTransit: number;
   totalShipped: number;
   accountBalance: number;
@@ -61,6 +68,7 @@ export interface DashboardData {
 }
 
 export interface TrackData {
+  fygaroPayment?: FygaroPayment | null;
   inTransit: Item[];
   totalShipped: Item[];
   readyForPickup: Item[];
@@ -122,6 +130,7 @@ export interface Invoice {
   id: number;
   invoice_number: string;
   date: string | null;
+  /** Package office arrival date (invoice.office_date on the server). */
   invoice_date?: string | null;
   total: number;
   status: string;

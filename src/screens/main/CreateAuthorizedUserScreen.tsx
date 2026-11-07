@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import QueryContent from '../../components/QueryContent';
 import {Text, View } from 'react-native';
 import {
   GradientScreen,
@@ -48,13 +49,15 @@ export default function CreateAuthorizedUserScreen({
       <View className="mt-4">
         <Field icon="user" placeholder="First name" value={firstName} onChangeText={setFirstName} />
         <Field icon="user" placeholder="Last name" value={lastName} onChangeText={setLastName} />
-        <SelectField
-          icon="credit-card"
-          placeholder="ID type"
-          value={idType}
-          options={(types.data ?? []).map((t) => ({ label: t.name, value: t.id }))}
-          onChange={setIdType}
-        />
+        <QueryContent query={types} resource="ID types">
+          <SelectField
+            icon="credit-card"
+            placeholder="ID type"
+            value={idType}
+            options={(types.data ?? []).map((t) => ({ label: t.name, value: t.id }))}
+            onChange={setIdType}
+          />
+        </QueryContent>
         <Field
           icon="hash"
           placeholder="ID number"
@@ -63,7 +66,7 @@ export default function CreateAuthorizedUserScreen({
           onChangeText={setIdNumber}
         />
         {error ? <Text className="font-normal text-danger text-center mb-4">{error}</Text> : null}
-        <PrimaryButton title="Add user" onPress={submit} loading={create.isPending} />
+        <PrimaryButton title="Add user" disabled={!types.data || types.isError} onPress={submit} loading={create.isPending} />
       </View>
     </GradientScreen>
   );

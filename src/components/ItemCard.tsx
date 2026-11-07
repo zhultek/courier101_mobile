@@ -2,27 +2,12 @@ import React from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { Icon } from './Icon';
 import type { Item } from '../api/types';
-import { cardShadow, money, tabularNums } from './ui';
+import { money, tabularNums } from './ui';
 
-/** created_at arrives as "YYYY-MM-DD ..." — render DD/MM/YYYY without Date() timezone drift. */
+/** Avoid timezone drift for API dates formatted as YYYY-MM-DD. */
 function shortDate(value: string | null | undefined): string | null {
   const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(value ?? '');
   return m ? `${m[3]}/${m[2]}/${m[1]}` : null;
-}
-
-function Meta({ label, value }: { label: string; value: string }) {
-  return (
-    <View className="flex-1 pr-2">
-      <Text className="text-[13px] text-muted">{label}</Text>
-      <Text
-        className="text-[15px] font-bold text-ink mt-0.5"
-        style={tabularNums}
-        numberOfLines={2}
-      >
-        {value}
-      </Text>
-    </View>
-  );
 }
 
 export function ItemCard({
@@ -30,73 +15,90 @@ export function ItemCard({
   onPress,
   onInvoicePress,
   showPrice = true,
+  statusLabel,
+  statusTone = 'primary',
 }: {
   item: Item;
   onPress?: () => void;
   onInvoicePress?: () => void;
   showPrice?: boolean;
+  statusLabel?: string;
+  statusTone?: 'primary' | 'success' | 'accent';
 }) {
   const created = shortDate(item.created_at);
-  const metas: { label: string; value: string }[] = [
-    showPrice
-      ? { label: 'Price', value: money(item.total) }
-      : { label: 'Location', value: item.location || '-' },
-    { label: 'Weight', value: item.weight ? `${item.weight} lbs` : '-' },
-    { label: 'Sender', value: item.sender || '-' },
-  ];
-  // Ready items are about pickup, not history — only shipped/transit show the date.
-  if (!showPrice && created) metas.push({ label: 'Created', value: created });
-
-  const rows: (typeof metas)[] = [];
-  for (let i = 0; i < metas.length; i += 2) rows.push(metas.slice(i, i + 2));
+  const title = item.description || item.sender || 'Package';
+  const tones = {
+    primary: { backgroundColor: '#EFF6FF', color: '#1D4ED8' },
+    success: { backgroundColor: '#ECFDF5', color: '#047857' },
+    accent: { backgroundColor: '#FFF7ED', color: '#C2410C' },
+  };
+  const tone = tones[statusTone];
+  const status = statusLabel || item.location || item.status;
 
   return (
-    <Pressable onPress={onPress} disabled={!onPress} className={onPress ? 'active:opacity-80' : ''}>
-      <View className="rounded-[22px] bg-white/60 p-2 mb-3.5" style={cardShadow}>
-        <View className="flex-row items-center px-1.5 py-1.5">
-          <View className="w-11 h-11 rounded-full bg-primary-soft items-center justify-center">
-            <Icon name="package" size={20} color="#2563EB" />
+    <View className="rounded-[20px] bg-white border border-line mb-3 overflow-hidden">
+      <Pressable
+        onPress={onPress}
+        disabled={!onPress}
+        accessibilityRole={onPress ? 'button' : undefined}
+        accessibilityLabel={onPress ? `View package: ${title}, ${item.tracking_number}` : undefined}
+        className="p-4 active:opacity-75"
+      >
+        <View className="flex-row items-start">
+          <View className="w-10 h-10 rounded-xl bg-primary-light items-center justify-center mr-3">
+            <Icon name="package" size={21} color="#2563EB" />
           </View>
-          <View className="flex-1 px-3">
-            <Text
-              className="text-[16px] font-bold text-ink"
-              style={tabularNums}
-              numberOfLines={1}
-            >
-              {item.tracking_number}
-            </Text>
-            <Text className="text-[13px] font-semibold text-success" numberOfLines={1}>
-              {item.warehouse_code}
-            </Text>
+          <View className="flex-1 min-w-0">
+            <Text className="text-base font-semibold text-ink leading-[23px]">{title}</Text>
+            {item.description && item.sender ? (
+              <Text className="text-sm text-muted mt-0.5">{item.sender}</Text>
+            ) : null}
           </View>
-          {onInvoicePress ? (
-            <Pressable
-              onPress={onInvoicePress}
-              hitSlop={6}
-              className="w-10 h-10 rounded-full bg-white items-center justify-center active:bg-surface"
-              style={cardShadow}
-            >
-              <Icon name="file-text" size={18} color="#0F172A" />
-            </Pressable>
-          ) : null}
+          {onPress ? <Icon name="chevron-right" size={17} color="#64748B" style={{ marginLeft: 8, marginTop: 3 }} /> : null}
         </View>
 
-        <View className="rounded-[16px] bg-white px-4 py-3">
-          {rows.map((row, i) => (
-            <View key={i} className={`flex-row ${i > 0 ? 'mt-2.5' : ''}`}>
-              {row.map((meta) => (
-                <Meta key={meta.label} label={meta.label} value={meta.value} />
-              ))}
-              {row.length === 1 ? <View className="flex-1 pr-2" /> : null}
-            </View>
-          ))}
-          {item.description ? (
-            <View className="mt-2.5">
-              <Meta label="Description" value={item.description} />
-            </View>
-          ) : null}
+        {status ? (
+          <View className="self-start rounded-lg px-2.5 py-1.5 mt-3" style={{ backgroundColor: tone.backgroundColor, maxWidth: '100%' }}>
+            <Text className="text-[13px] font-semibold" style={{ color: tone.color }}>{status}</Text>
+          </View>
+        ) : null}
+
+        <Text className="text-[12px] text-muted mt-3 mb-1">Tracking number</Text>
+        <Text className="text-sm text-ink leading-5" style={tabularNums}>{item.tracking_number || 'Not available'}</Text>
+        {item.warehouse_code ? (
+          <Text className="text-[13px] text-muted leading-5 mt-1">Warehouse {item.warehouse_code}</Text>
+        ) : null}
+        {!showPrice && item.location && item.location !== status ? (
+          <Text className="text-sm text-muted mt-2">{item.location}</Text>
+        ) : null}
+        {!showPrice && created ? (
+          <Text className="text-[13px] text-muted mt-2">Created {created}</Text>
+        ) : null}
+      </Pressable>
+
+      <View className="flex-row flex-wrap items-center gap-x-5 gap-y-3 px-4 py-3 border-t border-line">
+        <View style={{ flexGrow: 1, flexBasis: 72 }}>
+          <Text className="text-[12px] text-muted mb-1">Weight</Text>
+          <Text className="text-sm font-medium text-ink" style={tabularNums}>{item.weight ? `${item.weight} lbs` : '—'}</Text>
         </View>
+        {showPrice ? (
+          <View style={{ flexGrow: 1, flexBasis: 88 }}>
+            <Text className="text-[12px] text-muted mb-1">Total</Text>
+            <Text className="text-base font-semibold text-ink" style={tabularNums}>{money(item.total)}</Text>
+          </View>
+        ) : null}
+        {onInvoicePress ? (
+          <Pressable
+            onPress={onInvoicePress}
+            accessibilityRole="button"
+            accessibilityLabel={`View invoice for ${item.tracking_number}`}
+            className="flex-row items-center justify-center min-h-[44px] rounded-xl bg-primary-light px-3 active:bg-primary-soft"
+          >
+            <Icon name="file-text" size={17} color="#2563EB" />
+            <Text className="text-primary font-semibold text-sm ml-1.5">Invoice</Text>
+          </Pressable>
+        ) : null}
       </View>
-    </Pressable>
+    </View>
   );
 }

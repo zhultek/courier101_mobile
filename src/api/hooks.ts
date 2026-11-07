@@ -20,6 +20,7 @@ import type {
   UserSettings,
 } from './types';
 import { notify } from '../utils/dialogs';
+import { unregisterOfficePush } from '../notifications/officePush';
 
 // ---- Courier / auth ----
 
@@ -91,9 +92,16 @@ export function useForgotPassword() {
 
 export function useLogout() {
   const signOut = useAuth((s) => s.signOut);
+  const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: () => api('/logout', { method: 'POST' }).catch(() => null),
-    onSettled: () => signOut(),
+    mutationFn: async () => {
+      await unregisterOfficePush().catch(() => {});
+      await api('/logout', { method: 'POST' }).catch(() => null);
+    },
+    onSettled: async () => {
+      await signOut();
+      queryClient.clear();
+    },
   });
 }
 
@@ -203,6 +211,7 @@ export function useDeleteDelivery() {
   return useMutation({
     mutationFn: (id: number) => api(`/delivery/${id}`, { method: 'DELETE' }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['deliveries'] }),
+    onError: () => notify('Unable to cancel delivery', 'We could not confirm the cancellation. Refresh the list, then try again if the request is still there.'),
   });
 }
 
@@ -294,6 +303,7 @@ export function useDeleteAccount() {
   return useMutation({
     mutationFn: () => api('/user/account/delete', { method: 'DELETE' }),
     onSuccess: () => signOut(),
+    onError: () => notify('Unable to delete account', 'We could not confirm account deletion. Please try again.'),
   });
 }
 
@@ -400,5 +410,6 @@ export function useDeleteAuthorizedUser() {
   return useMutation({
     mutationFn: (id: number) => api(`/authorize/${id}`, { method: 'DELETE' }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['authorized-users'] }),
+    onError: () => notify('Unable to remove authorized user', 'We could not confirm the removal. Refresh the list, then try again if the user is still there.'),
   });
 }

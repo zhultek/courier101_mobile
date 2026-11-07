@@ -1,12 +1,14 @@
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import React from 'react';
+import QueryContent from '../../components/QueryContent';
 import { FlatList, RefreshControl, Text, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
   AddPill,
+  ScreenHeader,
   GradientScreen,
   Card,
-  LoadingView,
   EmptyView,
   money,
   tabularNums,
@@ -15,24 +17,20 @@ import { usePrealerts } from '../../api/hooks';
 import type { AppStackParamList } from '../../navigation/types';
 
 export default function PrealertsScreen() {
+  const tabBarHeight = useBottomTabBarHeight();
   const navigation =
     useNavigation<NativeStackNavigationProp<AppStackParamList>>();
   const prealerts = usePrealerts();
 
   return (
     <GradientScreen scroll={false}>
-      <View className="flex-row items-center justify-between py-4">
-        <Text className="text-3xl font-extrabold text-ink">Prealerts</Text>
-        <AddPill onPress={() => navigation.navigate('CreatePrealert')} />
-      </View>
-      {prealerts.isLoading ? (
-        <LoadingView />
-      ) : (
+      <ScreenHeader title="Prealerts" right={<AddPill onPress={() => navigation.navigate('CreatePrealert')} />} />
+      <QueryContent query={prealerts} resource="prealerts">
         <FlatList
           data={prealerts.data?.data ?? []}
           keyExtractor={(p) => String(p.id)}
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: 120 }}
+          contentContainerStyle={{ paddingBottom: Math.max(120, tabBarHeight + 24) }}
           refreshControl={
             <RefreshControl
               refreshing={prealerts.isRefetching}
@@ -62,7 +60,7 @@ export default function PrealertsScreen() {
             </Card>
           )}
         />
-      )}
+      </QueryContent>
     </GradientScreen>
   );
 }

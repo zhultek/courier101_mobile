@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import QueryContent from '../../components/QueryContent';
 import {
   ActivityIndicator,
   Image,
@@ -6,16 +7,15 @@ import {
   Pressable,
   Text,
   View,
+  useWindowDimensions,
 } from 'react-native';
 import { File, Paths } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
-import { Icon, IconName } from '../../components/Icon';
+import { Icon } from '../../components/Icon';
 import {
   GradientScreen,
-  LoadingView,
   ScreenHeader,
-  StatusChip,
-  cardShadow,
+  Card,
   money,
   tabularNums,
 } from '../../components/ui';
@@ -30,8 +30,8 @@ function statusTone(status: string): 'success' | 'danger' | 'accent' | 'neutral'
   if (s.includes('not paid') || s.includes('unpaid') || s.includes('overdue')) {
     return 'danger';
   }
-  if (s.includes('paid')) return 'success';
   if (s.includes('partial')) return 'accent';
+  if (s.includes('paid')) return 'success';
   return 'neutral';
 }
 
@@ -88,11 +88,48 @@ async function downloadInvoicePdf(id: number, invoiceNumber: string) {
   });
 }
 
+const statusColors = {
+  success: { backgroundColor: '#ECFDF5', color: '#047857' },
+  danger: { backgroundColor: '#FEF2F2', color: '#B91C1C' },
+  accent: { backgroundColor: '#FFFBEB', color: '#92400E' },
+  neutral: { backgroundColor: '#F1F5F9', color: '#475569' },
+} as const;
+
+function InvoiceAmount({ label, amount, total = false }: { label: string; amount: number; total?: boolean }) {
+  return (
+    <View className={`flex-row flex-wrap items-start justify-between gap-x-4 gap-y-1 py-3 ${total ? 'border-t border-line mt-2' : ''}`}>
+      <Text
+        className={`text-sm leading-[22px] ${total ? 'font-semibold text-ink' : 'text-muted'}`}
+        style={{ flexGrow: 1, flexBasis: 136 }}
+      >
+        {label}
+      </Text>
+      <Text
+        className={`leading-[22px] ${total ? 'text-lg font-semibold text-ink' : 'text-sm font-medium text-ink'}`}
+        style={[tabularNums, { maxWidth: '100%' }]}
+      >
+        {money(amount)}
+      </Text>
+    </View>
+  );
+}
+
+function PackageDetail({ label, value }: { label: string; value: string }) {
+  return (
+    <View style={{ flexGrow: 1, flexBasis: 108 }}>
+      <Text className="text-[12px] text-muted mb-1">{label}</Text>
+      <Text selectable className="text-sm font-semibold text-ink leading-[22px]" style={tabularNums}>{value}</Text>
+    </View>
+  );
+}
+
 export default function InvoiceScreen({ navigation, route }: AppScreenProps<'Invoice'>) {
   const invoice = useInvoice(route.params.id);
   const authCourier = useAuth((s) => s.courier);
+  const { fontScale } = useWindowDimensions();
   const [downloading, setDownloading] = useState(false);
-  const [logoFailed, setLogoFailed] = useState(false);
+  const [failedLogoUrl, setFailedLogoUrl] = useState<string | null>(null);
+  const [billingExpanded, setBillingExpanded] = useState(false);
   const data = invoice.data?.data;
 
   const download = async () => {
@@ -107,209 +144,181 @@ export default function InvoiceScreen({ navigation, route }: AppScreenProps<'Inv
     }
   };
 
-  if (invoice.isLoading) {
-    return (
-      <GradientScreen>
-        <ScreenHeader title="Invoice" onBack={() => navigation.goBack()} />
-        <LoadingView />
-      </GradientScreen>
-    );
-  }
-
   if (!data) {
     return (
       <GradientScreen>
         <ScreenHeader title="Invoice" onBack={() => navigation.goBack()} />
-        <Text className="font-normal text-muted text-center mt-10">Invoice not found.</Text>
+        <QueryContent query={invoice} resource="invoice">
+          <Text className="text-muted text-center mt-10">Invoice not found.</Text>
+        </QueryContent>
       </GradientScreen>
     );
   }
 
-  // Courier branding comes from the invoice; older API responses lack the
-  // block, so the logo falls back to the courier chosen at login.
   const courier = data.courier;
   const logoUrl = courier?.logo_url ?? authCourier?.logo_url ?? null;
-  const courierCityLine = [courier?.city, courier?.parish].filter(Boolean).join(', ');
-  const officeCityLine = [data.office?.city, data.office?.parish]
-    .filter(Boolean)
-    .join(', ');
+  const courierAddress = courier?.street_address ?? data.office?.address;
+  const courierCityLine = [courier?.city, courier?.parish].filter(Boolean).join(', ')
+    || [data.office?.city, data.office?.parish].filter(Boolean).join(', ');
   const customer = data.customer;
   const customerCityLine = [customer?.city, customer?.parish].filter(Boolean).join(', ');
-  const invoiceDate = formatDate(data.invoice_date ?? data.date);
+  const arrivalDate = formatDate(data.invoice_date);
+  const paymentDate = formatDate(data.payment_date);
   const fees = data.invoice_items.filter((line) => line.total && line.show !== 0);
   const item = data.item;
-  const showItemRow = Boolean(item && (item.tracking_number || item.warehouse_code));
+  const showPackage = Boolean(item && (item.tracking_number || item.warehouse_code || item.description || item.weight != null));
+  const hasIssuerDetails = Boolean(courier?.name || courierAddress || courierCityLine);
+  const hasCustomerDetails = Boolean(customer?.name || customer?.address || customerCityLine || customer?.email);
+  const tone = statusColors[statusTone(data.status)];
 
   return (
     <GradientScreen>
-      <ScreenHeader title="Invoice" onBack={() => navigation.goBack()} />
-
-      <View
-        className="mt-2 rounded-3xl bg-white border border-line/60 overflow-hidden"
-        style={cardShadow}
-      >
-        {/* Header strip: invoice number + download, like the web block header */}
-        <View className="flex-row items-center bg-surface/80 px-5 py-3.5 border-b border-line/70">
-          <Text className="flex-1 font-semibold text-ink text-[13px] mr-3" numberOfLines={1}>
-            #{data.invoice_number}
-          </Text>
+      <ScreenHeader
+        title="Invoice"
+        onBack={() => navigation.goBack()}
+        right={
           <Pressable
             onPress={download}
             disabled={downloading}
-            hitSlop={8}
-            className="flex-row items-center active:opacity-60"
             accessibilityRole="button"
             accessibilityLabel="Download invoice"
+            accessibilityState={{ disabled: downloading, busy: downloading }}
+            className="min-h-[44px] min-w-[72px] flex-row items-center justify-center rounded-xl bg-white border border-line px-3 active:opacity-60"
           >
-            {downloading ? (
-              <ActivityIndicator size="small" color="#2563EB" />
-            ) : (
-              <Icon name="download-cloud" size={15} color="#2563EB" />
-            )}
-            <Text className="text-primary font-semibold text-[13px] ml-1.5">
-              Download Invoice
-            </Text>
+            {downloading ? <ActivityIndicator size="small" color="#2563EB" /> : <Icon name="download-cloud" size={19} color="#2563EB" />}
+            <Text className="text-primary font-semibold text-sm ml-2">{downloading ? 'Preparing…' : 'PDF'}</Text>
           </Pressable>
-        </View>
+        }
+      />
 
-        <View className="px-5 pt-6">
-          {/* Courier (left) and customer (right) blocks */}
-          <View className="flex-row">
-            <View className="flex-1 pr-3">
-              {logoUrl && !logoFailed ? (
+      <QueryContent query={invoice} resource="invoice">
+        <View className="rounded-[24px] bg-navy p-5 mt-1 mb-4">
+          <View className="flex-row items-center mb-5">
+            {logoUrl && logoUrl !== failedLogoUrl ? (
+              <View className="w-14 h-12 rounded-xl bg-white items-center justify-center mr-3">
                 <Image
                   source={{ uri: logoUrl }}
-                  onError={() => setLogoFailed(true)}
+                  onError={() => setFailedLogoUrl(logoUrl)}
                   resizeMode="contain"
                   accessibilityLabel={courier?.name ?? 'Courier logo'}
-                  style={{ width: 128, height: 44, alignSelf: 'flex-start' }}
+                  style={{ width: 48, height: 38 }}
                 />
-              ) : courier?.name ? (
-                <Text className="text-xl font-bold text-ink">{courier.name}</Text>
-              ) : null}
-              {courier?.street_address ?? data.office?.address ? (
-                <Text className="font-normal text-muted text-[13px] mt-2">
-                  {courier?.street_address ?? data.office?.address}
-                </Text>
-              ) : null}
-              {courierCityLine || officeCityLine ? (
-                <Text className="font-normal text-muted text-[13px] mt-0.5">
-                  {courierCityLine || officeCityLine}
-                </Text>
-              ) : null}
-              <StatusChip
-                label={data.status || 'Pending'}
-                tone={statusTone(data.status)}
-                className="mt-3"
-              />
-            </View>
-
-            <View className="flex-1 items-end">
-              {customer?.name ? (
-                <Text className="text-base font-semibold text-ink text-right">
-                  {customer.name}
-                </Text>
-              ) : null}
-              {customer?.address ? (
-                <Text className="font-normal text-muted text-[13px] mt-2 text-right">
-                  {customer.address}
-                </Text>
-              ) : null}
-              {customerCityLine ? (
-                <Text className="font-normal text-muted text-[13px] mt-0.5 text-right">
-                  {customerCityLine}
-                </Text>
-              ) : null}
-              {customer?.email ? (
-                <Text className="font-normal text-muted text-[13px] mt-0.5 text-right">
-                  {customer.email}
-                </Text>
-              ) : null}
-              {invoiceDate ? (
-                <Text className="font-normal text-faint text-[13px] mt-2 text-right">
-                  Invoice Date: {invoiceDate}
-                </Text>
-              ) : null}
-            </View>
-          </View>
-
-          {/* Charges table */}
-          <View className="mt-6 rounded-2xl border border-line overflow-hidden">
-            <View className="flex-row bg-surface px-4 py-2.5 border-b border-line">
-              <Text className="flex-1 font-semibold text-muted text-[13px]">
-                Product
-              </Text>
-              <Text className="font-semibold text-muted text-[13px]">Amount</Text>
-            </View>
-
-            {showItemRow && item ? (
-              <View className="flex-row items-start px-4 py-3.5 border-b border-line/60">
-                <View className="flex-1 pr-3">
-                  <Text className="font-semibold text-ink text-sm leading-5">
-                    {item.tracking_number ?? '-'} -{' '}
-                    <Text className="text-primary">{item.warehouse_code ?? '-'}</Text>
-                    {` (${item.weight ?? '-'} lbs)`}
-                  </Text>
-                  {item.description ? (
-                    <Text className="font-normal text-muted text-[13px] mt-1">
-                      {item.description}
-                    </Text>
-                  ) : null}
-                </View>
-                <Text className="font-medium text-ink text-sm" style={tabularNums}>
-                  {money(data.weight_rate)}
-                </Text>
               </View>
             ) : null}
-
-            <View className="flex-row justify-end items-center px-4 py-3 border-b border-line/60">
-              <Text className="font-semibold text-accent text-[13px]">Subtotal</Text>
-              <Text className="font-semibold text-accent text-sm ml-8" style={tabularNums}>
-                {money(data.weight_rate)}
-              </Text>
-            </View>
-
-            {fees.map((line, index) => (
-              <View
-                key={index}
-                className="flex-row justify-end items-center px-4 py-3 border-b border-line/60"
-              >
-                <Text
-                  className="font-semibold text-ink text-[13px] flex-shrink text-right"
-                  numberOfLines={1}
-                >
-                  {line.product}
-                </Text>
-                <Text className="font-medium text-ink text-sm ml-8" style={tabularNums}>
-                  {money(line.total)}
-                </Text>
-              </View>
-            ))}
-
-            <View className="flex-row justify-end items-center bg-surface px-4 py-4">
-              <Text className="font-bold text-ink text-[13px]">Total due</Text>
-              <Text className="text-[17px] font-bold text-ink ml-8" style={tabularNums}>
-                {money(data.total)}
-              </Text>
+            <View className="flex-1 min-w-0">
+              <Text className="text-white text-base font-semibold leading-[23px]">{courier?.name || 'Courier invoice'}</Text>
+              <Text selectable className="text-sm leading-5 mt-1" style={{ color: '#B8C7E4' }}>Invoice #{data.invoice_number}</Text>
             </View>
           </View>
 
-          {courier?.gct_number ? (
-            <Text className="text-center font-semibold text-ink text-sm mt-5">
-              GCT #: {courier.gct_number}
-            </Text>
-          ) : null}
-          {courier?.invoice_note ? (
-            <Text className="text-center font-normal text-muted text-[13px] mt-4 leading-5">
-              {courier.invoice_note}
-            </Text>
-          ) : null}
-          <Text className="text-center font-normal text-faint text-[13px] mt-5 mb-6 leading-5">
-            Thank you very much for doing business with us. We look forward to working
-            with you again!
+          <View className="flex-row flex-wrap items-center justify-between gap-3 mb-1">
+            <Text className="text-sm" style={{ color: '#B8C7E4' }}>Invoice total</Text>
+            <View accessible accessibilityLabel={`Payment status: ${data.status || 'Pending'}`} className="self-start rounded-lg px-2.5 py-1.5" style={{ backgroundColor: tone.backgroundColor, maxWidth: '100%' }}>
+              <Text className="text-[13px] font-semibold" style={{ color: tone.color }}>{data.status || 'Pending'}</Text>
+            </View>
+          </View>
+          <Text
+            selectable
+            adjustsFontSizeToFit
+            minimumFontScale={0.65}
+            numberOfLines={1}
+            className="text-white text-[34px] font-semibold mt-1 mb-4"
+            style={tabularNums}
+          >
+            {money(data.total)}
           </Text>
+          {arrivalDate || paymentDate ? (
+            <View className="border-t border-navy-line pt-3 gap-1">
+              {arrivalDate ? <Text className="text-[13px] leading-5" style={{ color: '#B8C7E4' }}>Arrival date {arrivalDate}</Text> : null}
+              {paymentDate ? <Text className="text-[13px] leading-5" style={{ color: '#B8C7E4' }}>Payment date {paymentDate}</Text> : null}
+            </View>
+          ) : null}
         </View>
-      </View>
+
+        <Card className="mb-4 pb-1">
+          <Text accessibilityRole="header" className="text-base font-semibold text-ink mb-1">Charge breakdown</Text>
+          <InvoiceAmount label="Package weight charge" amount={data.weight_rate} />
+          {fees.map((line, index) => <InvoiceAmount key={index} label={line.product} amount={line.total} />)}
+          <InvoiceAmount label="Total" amount={data.total} total />
+        </Card>
+
+        {showPackage && item ? (
+          <Card className="mb-4">
+            <View className="flex-row items-start mb-4">
+              <View className="w-10 h-10 rounded-xl bg-primary-light items-center justify-center mr-3">
+                <Icon name="package" size={21} color="#2563EB" />
+              </View>
+              <View className="flex-1 min-w-0">
+                <Text accessibilityRole="header" className="text-base font-semibold text-ink leading-[23px]">{item.description || 'Package details'}</Text>
+                {item.description ? <Text className="text-[13px] text-muted mt-0.5">Package details</Text> : null}
+              </View>
+            </View>
+            {item.tracking_number ? (
+              <View className="mb-3">
+                <Text className="text-[12px] text-muted mb-1">Tracking number</Text>
+                <Text selectable className="text-sm text-ink font-medium leading-[22px]" style={tabularNums}>{item.tracking_number}</Text>
+              </View>
+            ) : null}
+            {item.warehouse_code || item.weight != null ? (
+              <View className="flex-row flex-wrap gap-x-4 gap-y-3 border-t border-line pt-3">
+                {item.warehouse_code ? <PackageDetail label="Warehouse code" value={item.warehouse_code} /> : null}
+                {item.weight != null ? <PackageDetail label="Weight" value={`${item.weight} lbs`} /> : null}
+              </View>
+            ) : null}
+          </Card>
+        ) : null}
+
+        {hasIssuerDetails || hasCustomerDetails ? (
+          <Card className="mb-4">
+            <Pressable
+              onPress={() => setBillingExpanded((expanded) => !expanded)}
+              accessibilityRole="button"
+              accessibilityLabel={billingExpanded ? 'Hide billing details' : 'Show billing details'}
+              accessibilityState={{ expanded: billingExpanded }}
+              className="flex-row items-center min-h-[44px] active:opacity-60"
+            >
+              <View className="flex-1 pr-3">
+                <Text className="text-base font-semibold text-ink">Billing details</Text>
+                <Text className="text-sm text-muted leading-[22px] mt-1">{customer?.name ? `Billed to ${customer.name}` : 'Issuer and recipient information'}</Text>
+              </View>
+              <Icon name={billingExpanded ? 'chevron-down' : 'chevron-right'} size={19} color="#64748B" />
+            </Pressable>
+            {billingExpanded ? (
+              <View className="flex-row flex-wrap gap-5 border-t border-line mt-3 pt-4">
+                {hasIssuerDetails ? (
+                  <View style={{ flexGrow: 1, flexBasis: 136 * fontScale }}>
+                    <Text className="text-[12px] font-medium text-muted mb-2">From</Text>
+                    {courier?.name ? <Text className="text-sm font-semibold text-ink leading-[22px]">{courier.name}</Text> : null}
+                    {courierAddress ? <Text selectable className="text-sm text-muted leading-[22px]">{courierAddress}</Text> : null}
+                    {courierCityLine ? <Text className="text-sm text-muted leading-[22px]">{courierCityLine}</Text> : null}
+                  </View>
+                ) : null}
+                {hasCustomerDetails ? (
+                  <View style={{ flexGrow: 1, flexBasis: 136 * fontScale }}>
+                    <Text className="text-[12px] font-medium text-muted mb-2">Bill to</Text>
+                    {customer?.name ? <Text className="text-sm font-semibold text-ink leading-[22px]">{customer.name}</Text> : null}
+                    {customer?.address ? <Text selectable className="text-sm text-muted leading-[22px]">{customer.address}</Text> : null}
+                    {customerCityLine ? <Text className="text-sm text-muted leading-[22px]">{customerCityLine}</Text> : null}
+                    {customer?.email ? <Text selectable className="text-sm text-muted leading-[22px] mt-1">{customer.email}</Text> : null}
+                  </View>
+                ) : null}
+              </View>
+            ) : null}
+          </Card>
+        ) : null}
+
+        {courier?.invoice_note ? (
+          <View className="rounded-[20px] bg-primary-light border border-primary-soft p-4 mb-4">
+            <View className="flex-row items-center mb-2">
+              <Icon name="credit-card" size={18} color="#2563EB" />
+              <Text accessibilityRole="header" className="text-sm font-semibold text-ink ml-2 flex-shrink">Payment information</Text>
+            </View>
+            <Text selectable className="text-sm text-muted leading-6">{courier.invoice_note}</Text>
+          </View>
+        ) : null}
+        {courier?.gct_number ? <Text selectable className="text-[13px] text-muted text-center mb-3">GCT #: {courier.gct_number}</Text> : null}
+        <Text className="text-sm text-muted text-center leading-[22px] px-4 mt-1 mb-2">Thank you for shipping with {courier?.name || 'us'}.</Text>
+      </QueryContent>
     </GradientScreen>
   );
 }

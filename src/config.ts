@@ -1,7 +1,7 @@
-// Set EXPO_PUBLIC_API_URL in .env (or app config) to point at the API.
-// Example: EXPO_PUBLIC_API_URL=https://courier101.com
+// Local development can override this in .env. Release builds must stay usable
+// when that gitignored file is absent from the cloud build environment.
 export const API_URL =
-  process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:8000';
+  process.env.EXPO_PUBLIC_API_URL?.trim().replace(/\/+$/, '') || 'https://courier101.com';
 
 export const PARISHES = [
   'Kingston',

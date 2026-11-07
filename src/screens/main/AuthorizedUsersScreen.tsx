@@ -1,10 +1,10 @@
 import React from 'react';
+import QueryContent from '../../components/QueryContent';
 import {FlatList, Pressable, Text, View } from 'react-native';
 import { Icon, IconName } from '../../components/Icon';
 import {
   GradientScreen,
   Card,
-  LoadingView,
   EmptyView,
   ScreenHeader,
 } from '../../components/ui';
@@ -41,9 +41,7 @@ export default function AuthorizedUsersScreen({
           </Pressable>
         }
       />
-      {users.isLoading ? (
-        <LoadingView />
-      ) : (
+      <QueryContent query={users} resource="authorized users">
         <FlatList
           data={users.data?.data ?? []}
           keyExtractor={(u) => String(u.id)}
@@ -78,7 +76,7 @@ export default function AuthorizedUsersScreen({
             </Card>
           )}
         />
-      )}
+      </QueryContent>
     </GradientScreen>
   );
 }

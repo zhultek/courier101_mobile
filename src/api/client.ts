@@ -1,5 +1,6 @@
 import { API_URL } from '../config';
 import { useAuth } from '../store/auth';
+import { queryClient } from './queryClient';
 
 type ApiErrors = string | Record<string, string | string[]>;
 
@@ -29,15 +30,19 @@ interface RequestOptions {
   method?: 'GET' | 'POST' | 'DELETE';
   body?: Record<string, unknown> | FormData;
   auth?: boolean;
+  sessionToken?: string;
+  signal?: AbortSignal;
 }
 
 export async function api<T>(path: string, options: RequestOptions = {}): Promise<T> {
-  const { method = 'GET', body, auth = true } = options;
+  const { method = 'GET', body, auth = true, sessionToken, signal } = options;
+  const initialState = useAuth.getState();
+  const requestToken = sessionToken ?? initialState.token;
+  const requestCourier = initialState.courier?.code;
   const headers: Record<string, string> = { Accept: 'application/json' };
 
   if (auth) {
-    const token = useAuth.getState().token;
-    if (token) headers.Authorization = `Bearer ${token}`;
+    if (requestToken) headers.Authorization = `Bearer ${requestToken}`;
   }
 
   let payload: string | FormData | undefined;
@@ -48,13 +53,36 @@ export async function api<T>(path: string, options: RequestOptions = {}): Promis
     payload = JSON.stringify(body);
   }
 
-  const response = await fetch(`${API_URL}/api${path}`, {
-    method,
-    headers,
-    body: payload,
-  });
-
-  const text = await response.text();
+  const controller = new AbortController();
+  const abort = () => controller.abort();
+  let timedOut = false;
+  const timeout = setTimeout(() => {
+    timedOut = true;
+    controller.abort();
+  }, body instanceof FormData ? 120_000 : 30_000);
+  if (signal?.aborted) controller.abort();
+  signal?.addEventListener('abort', abort, { once: true });
+  let response: Response;
+  let text: string;
+  try {
+    response = await fetch(`${API_URL}/api${path}`, {
+      method,
+      headers,
+      body: payload,
+      signal: controller.signal,
+    });
+    text = await response.text();
+  } catch {
+    throw new ApiError(
+      timedOut ? 408 : 0,
+      timedOut
+        ? 'The connection took too long. Please try again.'
+        : 'Unable to connect. Check your internet connection and try again.'
+    );
+  } finally {
+    clearTimeout(timeout);
+    signal?.removeEventListener('abort', abort);
+  }
   let json: any = null;
   try {
     json = text ? JSON.parse(text) : null;
@@ -63,15 +91,27 @@ export async function api<T>(path: string, options: RequestOptions = {}): Promis
   }
 
   if (!response.ok) {
-    if (response.status === 401 && auth) {
-      // Token revoked or expired: drop the session so the app returns to login.
-      useAuth.getState().signOut();
+    const state = useAuth.getState();
+    const sameSession = requestToken === state.token && requestCourier === state.courier?.code;
+    if (sameSession && (json?.error_code === 'MOBILE_APP_UNAVAILABLE' || (response.status === 401 && auth))) {
+      // Revoked tokens and disabled/deleted couriers return to code entry, with no cached customer data.
+      void state.resetCourier();
+      queryClient.clear();
     }
     throw new ApiError(
       response.status,
       json?.message ?? `Request failed (${response.status})`,
       json?.errors
     );
+  }
+
+  if (auth && requestToken !== useAuth.getState().token) {
+    // A response started before logout must never repopulate another customer's state.
+    throw new ApiError(401, 'Your session has ended.');
+  }
+
+  if (json === null && response.status !== 204) {
+    throw new ApiError(502, 'We could not load your information. Please try again.');
   }
 
   return json as T;

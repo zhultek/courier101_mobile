@@ -1,16 +1,13 @@
 import React from 'react';
-import { Pressable, Text, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import {
-  createBottomTabNavigator,
-  type BottomTabBarProps,
-} from '@react-navigation/bottom-tabs';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Icon, IconName } from '../components/Icon';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { BottomTabBar } from '../components/BottomTabBar';
 import { useAuth, useDeliveryEnabled } from '../store/auth';
 import { navigationRef } from './ref';
 import { SideMenu } from '../components/SideMenu';
+import AppErrorBoundary from '../components/AppErrorBoundary';
+import { recoverSignIn, resetViewCache, returnToDashboard } from '../utils/appRecovery';
 import type {
   AppStackParamList,
   AuthStackParamList,
@@ -29,6 +26,7 @@ import ShopForMeScreen from '../screens/main/ShopForMeScreen';
 import DeliveriesScreen from '../screens/main/DeliveriesScreen';
 import ItemDetailsScreen from '../screens/main/ItemDetailsScreen';
 import InvoiceScreen from '../screens/main/InvoiceScreen';
+import FygaroPaymentScreen from '../screens/main/FygaroPaymentScreen';
 import CreatePrealertScreen from '../screens/main/CreatePrealertScreen';
 import CreateDeliveryScreen from '../screens/main/CreateDeliveryScreen';
 import CreateShopForMeScreen from '../screens/main/CreateShopForMeScreen';
@@ -44,78 +42,11 @@ const AuthStack = createNativeStackNavigator<AuthStackParamList>();
 const AppStack = createNativeStackNavigator<AppStackParamList>();
 const Tabs = createBottomTabNavigator<MainTabParamList>();
 
-const TAB_ICONS: Record<keyof MainTabParamList, IconName> = {
-  Dashboard: 'home',
-  Track: 'map-pin',
-  Prealerts: 'bell',
-  Shop: 'shopping-bag',
-  Deliveries: 'truck',
-};
-
-// Plain inline styles only: dynamically swapping NativeWind classes on the
-// focused tab was unreliable on device (tabs collapsed after navigation).
-function PillTabBar({ state, navigation }: BottomTabBarProps) {
-  const insets = useSafeAreaInsets();
+function screenLayout({ children, route }: { children: React.ReactNode; route: { key: string; name: string } }) {
   return (
-    <View
-      style={{
-        position: 'absolute',
-        left: 16,
-        right: 16,
-        bottom: Math.max(insets.bottom, 12),
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#0B1633',
-        borderRadius: 999,
-        paddingHorizontal: 10,
-        paddingVertical: 8,
-        borderWidth: 1,
-        borderColor: '#24345F',
-        boxShadow:
-          '0px 2px 6px rgba(11, 22, 51, 0.2), 0px 16px 32px rgba(11, 22, 51, 0.35)',
-      }}
-    >
-      {state.routes.map((route, index) => {
-        const focused = state.index === index;
-        return (
-          <Pressable
-            key={route.key}
-            onPress={() => navigation.navigate(route.name)}
-            style={{
-              flex: focused ? 2.6 : 1,
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'center',
-              borderRadius: 999,
-              paddingVertical: 12,
-              backgroundColor: focused ? '#2563EB' : 'transparent',
-              boxShadow: focused
-                ? '0px 4px 12px rgba(37, 99, 235, 0.45)'
-                : undefined,
-            }}
-          >
-            <Icon
-              name={TAB_ICONS[route.name as keyof MainTabParamList]}
-              size={20}
-              color={focused ? '#FFFFFF' : '#8DA2CE'}
-            />
-            {focused ? (
-              <Text
-                numberOfLines={1}
-                style={{
-                  color: '#FFFFFF',
-                  fontWeight: '600',
-                  marginLeft: 6,
-                  fontSize: 15,
-                }}
-              >
-                {route.name}
-              </Text>
-            ) : null}
-          </Pressable>
-        );
-      })}
-    </View>
+    <AppErrorBoundary key={route.key} screen={route.name} homeLabel={useAuth.getState().token ? 'Back to dashboard' : 'Back to sign in'} onHome={returnToDashboard} onRetry={resetViewCache} onSignIn={recoverSignIn}>
+      {children}
+    </AppErrorBoundary>
   );
 }
 
@@ -123,8 +54,9 @@ function MainTabs() {
   const deliveryEnabled = useDeliveryEnabled();
   return (
     <Tabs.Navigator
+      screenLayout={screenLayout}
       screenOptions={{ headerShown: false }}
-      tabBar={(props) => <PillTabBar {...props} />}
+      tabBar={(props) => <BottomTabBar {...props} />}
     >
       <Tabs.Screen name="Dashboard" component={DashboardScreen} />
       <Tabs.Screen name="Track" component={TrackScreen} />
@@ -145,10 +77,11 @@ export default function RootNavigator() {
     <NavigationContainer ref={navigationRef}>
       {token ? (
         <>
-          <AppStack.Navigator screenOptions={{ headerShown: false }}>
+          <AppStack.Navigator screenLayout={screenLayout} screenOptions={{ headerShown: false }}>
             <AppStack.Screen name="Tabs" component={MainTabs} />
             <AppStack.Screen name="ItemDetails" component={ItemDetailsScreen} />
             <AppStack.Screen name="Invoice" component={InvoiceScreen} />
+            <AppStack.Screen name="FygaroPayment" component={FygaroPaymentScreen} />
             <AppStack.Screen name="CreatePrealert" component={CreatePrealertScreen} />
             <AppStack.Screen name="CreateDelivery" component={CreateDeliveryScreen} />
             <AppStack.Screen name="CreateShopForMe" component={CreateShopForMeScreen} />
@@ -166,7 +99,7 @@ export default function RootNavigator() {
           <SideMenu />
         </>
       ) : (
-        <AuthStack.Navigator screenOptions={{ headerShown: false }}>
+        <AuthStack.Navigator screenLayout={screenLayout} screenOptions={{ headerShown: false }}>
           {!courier ? (
             <AuthStack.Screen name="CourierCode" component={CourierCodeScreen} />
           ) : (

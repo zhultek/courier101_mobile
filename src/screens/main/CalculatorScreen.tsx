@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import QueryContent from '../../components/QueryContent';
 import { Text, View } from 'react-native';
 import {
   GradientScreen,
@@ -53,16 +54,18 @@ export default function CalculatorScreen({
           value={weight}
           onChangeText={setWeight}
         />
-        <SelectField
-          icon="tag"
-          placeholder="Duty category"
-          value={dutyId}
-          options={(categories.data?.data ?? []).map((c) => ({
-            label: c.name,
-            value: String(c.id),
-          }))}
-          onChange={setDutyId}
-        />
+        <QueryContent query={categories} resource="duty categories">
+          <SelectField
+            icon="tag"
+            placeholder="Duty category"
+            value={dutyId}
+            options={(categories.data?.data ?? []).map((c) => ({
+              label: c.name,
+              value: String(c.id),
+            }))}
+            onChange={setDutyId}
+          />
+        </QueryContent>
         <Field
           icon="dollar-sign"
           placeholder="Item value (USD)"
@@ -71,7 +74,7 @@ export default function CalculatorScreen({
           onChangeText={setValue}
         />
         {error ? <Text className="font-normal text-danger text-center mb-4">{error}</Text> : null}
-        <PrimaryButton title="Calculate" onPress={submit} loading={calculate.isPending} />
+        <PrimaryButton title="Calculate" disabled={!categories.data || categories.isError} onPress={submit} loading={calculate.isPending} />
 
         {result ? (
           <Card className="mt-6">

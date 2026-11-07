@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { QueryError } from '../../components/QueryContent';
 import {Text, View } from 'react-native';
 import {
   GradientScreen,
@@ -59,6 +60,7 @@ export default function EditProfileScreen({
   return (
     <GradientScreen>
       <ScreenHeader title="Edit profile" onBack={() => navigation.goBack()} />
+      {profile.isError || profile.fetchStatus === 'paused' ? <QueryError query={profile} resource="your profile" /> : null}
       <View className="mt-4">
         <Field icon="user" placeholder="First name" value={firstName} onChangeText={setFirstName} />
         <Field icon="user" placeholder="Last name" value={lastName} onChangeText={setLastName} />

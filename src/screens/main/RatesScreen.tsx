@@ -1,9 +1,9 @@
 import React from 'react';
+import QueryContent from '../../components/QueryContent';
 import { FlatList, Text, View } from 'react-native';
 import {
   GradientScreen,
   Card,
-  LoadingView,
   EmptyView,
   ScreenHeader,
   money,
@@ -18,9 +18,7 @@ export default function RatesScreen({ navigation }: AppScreenProps<'Rates'>) {
   return (
     <GradientScreen scroll={false}>
       <ScreenHeader title="Shipping rates" onBack={() => navigation.goBack()} />
-      {rates.isLoading ? (
-        <LoadingView />
-      ) : (
+      <QueryContent query={rates} resource="shipping rates">
         <FlatList
           data={rates.data?.data ?? []}
           keyExtractor={(r) => String(r.id)}
@@ -47,7 +45,7 @@ export default function RatesScreen({ navigation }: AppScreenProps<'Rates'>) {
             </Card>
           )}
         />
-      )}
+      </QueryContent>
     </GradientScreen>
   );
 }

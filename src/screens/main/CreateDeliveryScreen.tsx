@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import QueryContent from '../../components/QueryContent';
 import {Pressable, Text, View } from 'react-native';
 import { Icon, IconName } from '../../components/Icon';
 import {
@@ -7,7 +8,6 @@ import {
   PrimaryButton,
   ScreenHeader,
   SelectField,
-  LoadingView,
   money,
   tabularNums,
 } from '../../components/ui';
@@ -76,16 +76,18 @@ export default function CreateDeliveryScreen({
     <GradientScreen>
       <ScreenHeader title="Request delivery" onBack={() => navigation.goBack()} />
       <View className="mt-4">
-        <SelectField
-          icon="map-pin"
-          placeholder="Delivery location"
-          value={location}
-          options={(locations.data?.data ?? []).map((l) => ({
-            label: l.name,
-            value: String(l.id),
-          }))}
-          onChange={setLocation}
-        />
+        <QueryContent query={locations} resource="delivery locations">
+          <SelectField
+            icon="map-pin"
+            placeholder="Delivery location"
+            value={location}
+            options={(locations.data?.data ?? []).map((l) => ({
+              label: l.name,
+              value: String(l.id),
+            }))}
+            onChange={setLocation}
+          />
+        </QueryContent>
         {selectedLocation?.delivery_days?.length ? (
           <Text className="font-normal text-muted mb-2 ml-4 -mt-2">
             Delivers on: {selectedLocation.delivery_days.join(', ')}
@@ -124,43 +126,44 @@ export default function CreateDeliveryScreen({
         />
 
         <Text className="text-lg font-semibold text-ink mb-2">Select packages</Text>
-        {track.isLoading ? (
-          <LoadingView />
-        ) : pickupItems.length ? (
-          pickupItems.map((item) => {
-            const selected = selectedItems.includes(item.id);
-            return (
-              <Pressable
-                key={item.id}
-                onPress={() => toggleItem(item.id)}
-                className={`flex-row items-center rounded-2xl px-4 py-3 mb-2 border ${
-                  selected ? 'bg-primary-light border-primary' : 'bg-white border-line'
-                }`}
-              >
-                <Icon
-                  name={selected ? 'check-circle' : 'circle'}
-                  size={20}
-                  color={selected ? '#2563EB' : '#94A3B8'}
-                />
-                <View className="ml-3 flex-1">
-                  <Text className="text-ink font-semibold">{item.warehouse_code}</Text>
-                  <Text className="font-normal text-muted" numberOfLines={1}>
-                    {item.description}
+        <QueryContent query={track} resource="packages">
+          {pickupItems.length ? (
+            pickupItems.map((item) => {
+              const selected = selectedItems.includes(item.id);
+              return (
+                <Pressable
+                  key={item.id}
+                  onPress={() => toggleItem(item.id)}
+                  className={`flex-row items-center rounded-2xl px-4 py-3 mb-2 border ${
+                    selected ? 'bg-primary-light border-primary' : 'bg-white border-line'
+                  }`}
+                >
+                  <Icon
+                    name={selected ? 'check-circle' : 'circle'}
+                    size={20}
+                    color={selected ? '#2563EB' : '#94A3B8'}
+                  />
+                  <View className="ml-3 flex-1">
+                    <Text className="text-ink font-semibold">{item.warehouse_code}</Text>
+                    <Text className="font-normal text-muted" numberOfLines={1}>
+                      {item.description}
+                    </Text>
+                  </View>
+                  <Text className="text-ink font-semibold" style={tabularNums}>
+                    {money(item.total)}
                   </Text>
-                </View>
-                <Text className="text-ink font-semibold" style={tabularNums}>
-                  {money(item.total)}
-                </Text>
-              </Pressable>
-            );
-          })
-        ) : (
-          <Text className="font-normal text-muted mb-4">No packages ready for pickup.</Text>
-        )}
+                </Pressable>
+              );
+            })
+          ) : (
+            <Text className="font-normal text-muted mb-4">No packages ready for pickup.</Text>
+          )}
+        </QueryContent>
 
         {error ? <Text className="font-normal text-danger text-center my-4">{error}</Text> : null}
         <PrimaryButton
           title="Request delivery"
+          disabled={!locations.data || !track.data || locations.isError || track.isError}
           onPress={submit}
           loading={create.isPending}
           className="mt-4"

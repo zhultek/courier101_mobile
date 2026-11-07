@@ -1,14 +1,16 @@
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import React from 'react';
+import QueryContent from '../../components/QueryContent';
 import {FlatList, Pressable, RefreshControl, Text, View } from 'react-native';
 import { Icon, IconName } from '../../components/Icon';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
   AddPill,
+  ScreenHeader,
   GradientScreen,
   Card,
   InfoRow,
-  LoadingView,
   EmptyView,
   StatusChip,
   money,
@@ -18,6 +20,7 @@ import type { AppStackParamList } from '../../navigation/types';
 import { confirmAction, notify } from '../../utils/dialogs';
 
 export default function DeliveriesScreen() {
+  const tabBarHeight = useBottomTabBarHeight();
   const navigation =
     useNavigation<NativeStackNavigationProp<AppStackParamList>>();
   const deliveries = useDeliveries();
@@ -31,18 +34,13 @@ export default function DeliveriesScreen() {
 
   return (
     <GradientScreen scroll={false}>
-      <View className="flex-row items-center justify-between py-4">
-        <Text className="text-3xl font-extrabold text-ink">Deliveries</Text>
-        <AddPill onPress={() => navigation.navigate('CreateDelivery')} />
-      </View>
-      {deliveries.isLoading ? (
-        <LoadingView />
-      ) : (
+      <ScreenHeader title="Deliveries" right={<AddPill onPress={() => navigation.navigate('CreateDelivery')} />} />
+      <QueryContent query={deliveries} resource="delivery requests">
         <FlatList
           data={deliveries.data?.data ?? []}
           keyExtractor={(d) => String(d.id)}
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: 120 }}
+          contentContainerStyle={{ paddingBottom: Math.max(120, tabBarHeight + 24) }}
           refreshControl={
             <RefreshControl
               refreshing={deliveries.isRefetching}
@@ -75,7 +73,7 @@ export default function DeliveriesScreen() {
             </Card>
           )}
         />
-      )}
+      </QueryContent>
     </GradientScreen>
   );
 }

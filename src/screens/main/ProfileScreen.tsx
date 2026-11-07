@@ -1,4 +1,5 @@
 import React from 'react';
+import { QueryError } from '../../components/QueryContent';
 import {Pressable, Switch, Text, View } from 'react-native';
 import { Icon, IconName } from '../../components/Icon';
 import { GradientScreen, Card, ScreenHeader } from '../../components/ui';
@@ -11,6 +12,8 @@ import {
 import { useAuth } from '../../store/auth';
 import type { AppScreenProps } from '../../navigation/types';
 import { confirmAction, notify } from '../../utils/dialogs';
+import OfficePushSettings from '../../notifications/OfficePushSettings';
+import DevelopmentCrashTest from '../../components/DevelopmentCrashTest';
 
 function MenuRow({
   icon,
@@ -67,6 +70,7 @@ export default function ProfileScreen({ navigation }: AppScreenProps<'Profile'>)
   return (
     <GradientScreen>
       <ScreenHeader title="Profile" onBack={() => navigation.goBack()} />
+      {profile.isError || profile.fetchStatus === 'paused' ? <QueryError query={profile} resource="your profile" /> : null}
       <Card className="items-center py-6 mt-2">
         <View className="w-20 h-20 rounded-full bg-primary-light items-center justify-center">
           <Text className="text-primary text-2xl font-bold">
@@ -81,6 +85,8 @@ export default function ProfileScreen({ navigation }: AppScreenProps<'Profile'>)
           <Text className="text-primary font-semibold">Mailbox {user?.mailbox}</Text>
         </View>
       </Card>
+
+      <OfficePushSettings />
 
       <Card className="mt-4 py-1 px-5">
         <MenuRow
@@ -137,6 +143,7 @@ export default function ProfileScreen({ navigation }: AppScreenProps<'Profile'>)
         <MenuRow icon="log-out" label="Sign out" onPress={() => logout.mutate()} />
         <MenuRow icon="trash-2" label="Delete account" onPress={confirmDelete} danger />
       </Card>
+      {__DEV__ ? <DevelopmentCrashTest /> : null}
     </GradientScreen>
   );
 }

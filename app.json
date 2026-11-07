@@ -3,7 +3,7 @@
     "name": "Courier101",
     "slug": "courier101-mobile",
     "scheme": "courier101",
-    "version": "2.0.0",
+    "version": "3.0.1",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -34,11 +34,13 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "Allow Courier101 to access your photos so you can attach invoices to your pre-alerts.",
-          "cameraPermission": "Allow Courier101 to use the camera to photograph invoices for your pre-alerts.",
+          "photosPermission": "Allow access to your photos so you can attach invoices to your pre-alerts.",
+          "cameraPermission": "Allow camera access to photograph invoices for your pre-alerts.",
           "microphonePermission": false
         }
-      ]
+      ],
+      "expo-web-browser",
+      "expo-notifications"
     ],
     "extra": {
       "eas": {

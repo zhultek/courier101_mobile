@@ -3,11 +3,13 @@ import { Image, Text, View } from 'react-native';
 import { GradientScreen, Field, PrimaryButton } from '../../components/ui';
 import { useCourierLookup } from '../../api/hooks';
 import { ApiError } from '../../api/client';
+import { useAuth } from '../../store/auth';
 
 export default function CourierCodeScreen() {
   const [code, setCode] = useState('');
   const [error, setError] = useState<string | null>(null);
   const lookup = useCourierLookup();
+  const accessError = useAuth((s) => s.accessError);
 
   const submit = () => {
     if (!code.trim()) {
@@ -44,7 +46,7 @@ export default function CourierCodeScreen() {
         onChangeText={setCode}
         autoCapitalize="none"
         autoCorrect={false}
-        error={error ?? undefined}
+        error={error ?? accessError ?? undefined}
         onSubmitEditing={submit}
         returnKeyType="go"
       />
