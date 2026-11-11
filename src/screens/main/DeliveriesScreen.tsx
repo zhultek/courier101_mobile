@@ -12,12 +12,14 @@ import {
   Card,
   InfoRow,
   EmptyView,
+  IconTile,
   StatusChip,
   money,
 } from '../../components/ui';
 import { useDeliveries, useDeleteDelivery } from '../../api/hooks';
 import type { AppStackParamList } from '../../navigation/types';
 import { confirmAction, notify } from '../../utils/dialogs';
+import { featureTones } from '../../theme/colors';
 
 export default function DeliveriesScreen() {
   const tabBarHeight = useBottomTabBarHeight();
@@ -47,11 +49,12 @@ export default function DeliveriesScreen() {
               onRefresh={() => deliveries.refetch()}
             />
           }
-          ListEmptyComponent={<EmptyView message="No delivery requests yet" />}
+          ListEmptyComponent={<EmptyView message="No delivery requests yet" icon="truck" tone={featureTones.delivery} />}
           renderItem={({ item }) => (
             <Card className="mb-4">
               <View className="flex-row items-center justify-between mb-2">
-                <View className="flex-1">
+                <IconTile icon="truck" tint={featureTones.delivery} size="sm" />
+                <View className="flex-1 mx-3">
                   <Text className="text-lg font-semibold text-ink">{item.location}</Text>
                   <Text className="font-normal text-muted">
                     {[item.street_address, item.parish].filter(Boolean).join(', ')}

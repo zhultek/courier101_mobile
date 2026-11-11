@@ -11,10 +11,12 @@ import {
   Card,
   InfoRow,
   EmptyView,
+  IconTile,
   money,
 } from '../../components/ui';
 import { useShopForMe } from '../../api/hooks';
 import type { AppStackParamList } from '../../navigation/types';
+import { featureTones } from '../../theme/colors';
 
 export default function ShopForMeScreen() {
   const tabBarHeight = useBottomTabBarHeight();
@@ -37,10 +39,13 @@ export default function ShopForMeScreen() {
               onRefresh={() => shop.refetch()}
             />
           }
-          ListEmptyComponent={<EmptyView message="No shop-for-me requests yet" />}
+          ListEmptyComponent={<EmptyView message="No shop-for-me requests yet" icon="shopping-bag" tone={featureTones.shop} />}
           renderItem={({ item }) => (
             <Card className="mb-4">
-              <Text className="text-lg font-semibold text-ink mb-2">{item.name}</Text>
+              <View className="flex-row items-center gap-3 mb-3">
+                <IconTile icon="shopping-bag" tint={featureTones.shop} size="sm" />
+                <Text className="flex-1 text-lg font-semibold text-ink">{item.name}</Text>
+              </View>
               <View className="rounded-2xl bg-surface px-4 py-2">
                 <InfoRow label="Value" value={money(item.value)} />
                 <InfoRow label="Quantity" value={item.quantity} />

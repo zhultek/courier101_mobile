@@ -1,3 +1,4 @@
+import { useBranding } from '../../theme/BrandingProvider';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { AppState, Text } from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
@@ -9,6 +10,7 @@ import { api } from '../../api/client';
 import type { TrackData } from '../../api/types';
 
 export default function FygaroPaymentScreen({ navigation, route }: AppScreenProps<'FygaroPayment'>) {
+  const brand = useBranding();
   const [payment, setPayment] = useState(route.params.payment);
   const [available, setAvailable] = useState(true);
   const queryClient = useQueryClient();
@@ -56,7 +58,7 @@ export default function FygaroPaymentScreen({ navigation, route }: AppScreenProp
         createTask: false,
         dismissButtonStyle: 'close',
         toolbarColor: '#FFFFFF',
-        controlsColor: '#2563EB',
+        controlsColor: brand.primary,
       });
       // Closing checkout is not proof of payment; reload the server's balances.
       if (result.type !== WebBrowser.WebBrowserResultType.OPENED) {

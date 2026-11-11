@@ -1,4 +1,7 @@
+import type { MobileAppearance } from '../theme/branding';
+
 export interface CourierInfo {
+  appearance?: MobileAppearance;
   code: string;
   courier_id: number;
   logo_url: string | null;
@@ -62,6 +65,8 @@ export interface DashboardData {
   inTransit: number;
   totalShipped: number;
   accountBalance: number;
+  pointsEnabled?: boolean;
+  pointsBalance?: number | null;
   readyForPickupCount: number;
   readyForPickup: Item[];
   referralUrl?: string;

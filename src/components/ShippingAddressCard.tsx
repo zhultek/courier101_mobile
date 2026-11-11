@@ -1,3 +1,4 @@
+import { useBranding } from '../theme/BrandingProvider';
 import React from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import type { ShippingAddress } from '../api/types';
@@ -9,6 +10,7 @@ function addressKey(address: ShippingAddress) {
 }
 
 export function ShippingAddressSelector({ addresses }: { addresses: ShippingAddress[] }) {
+  const brand = useBranding();
   const [selectedKey, setSelectedKey] = React.useState<string | null>(null);
   const selected = addresses.find((address) => addressKey(address) === selectedKey) ?? addresses[0];
   if (!selected) return null;
@@ -27,9 +29,9 @@ export function ShippingAddressSelector({ addresses }: { addresses: ShippingAddr
                 accessibilityState={{ selected: active }}
                 accessibilityLabel={address.name || (address.address_type === 'cn' ? 'China' : 'United States')}
                 className="min-h-[44px] rounded-xl px-4 py-3 border justify-center"
-                style={{ backgroundColor: active ? '#EFF6FF' : '#FFFFFF', borderColor: active ? '#2563EB' : '#E2E8F0' }}
+                style={{ backgroundColor: active ? brand.primaryLight : '#FFFFFF', borderColor: active ? brand.primary : '#E2E8F0' }}
               >
-                <Text className="text-sm font-semibold" style={{ color: active ? '#1D4ED8' : '#475569' }}>
+                <Text className="text-sm font-semibold" style={{ color: active ? brand.primaryDark : '#475569' }}>
                   {address.name || (address.address_type === 'cn' ? 'China' : 'United States')}
                 </Text>
               </Pressable>
@@ -43,6 +45,7 @@ export function ShippingAddressSelector({ addresses }: { addresses: ShippingAddr
 }
 
 export function ShippingAddressCard({ address }: { address: ShippingAddress }) {
+  const brand = useBranding();
   const user = useAuth((s) => s.user);
   const [expanded, setExpanded] = React.useState(false);
   const fullName = [address.name_prefix, user?.first_name, user?.last_name, address.name_suffix].filter(Boolean).join(' ');
@@ -67,7 +70,7 @@ export function ShippingAddressCard({ address }: { address: ShippingAddress }) {
     <View className="rounded-[20px] bg-white border border-line p-4 mb-4">
       <View className="flex-row items-start mb-3">
         <View className="w-10 h-10 rounded-xl bg-primary-light items-center justify-center mr-3">
-          <Icon name="globe" size={20} color="#2563EB" />
+          <Icon name="globe" size={20} color={brand.primary} />
         </View>
         <View className="flex-1 min-w-0">
           <Text className="text-base font-semibold text-ink">{address.name || country}</Text>

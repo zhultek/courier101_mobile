@@ -1,3 +1,4 @@
+import { useBranding } from '../theme/BrandingProvider';
 import React from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { BottomTabBarHeightCallbackContext, type BottomTabBarProps } from '@react-navigation/bottom-tabs';
@@ -14,6 +15,7 @@ const TABS: Record<keyof MainTabParamList, { icon: IconName; label: string }> = 
 };
 
 export function BottomTabBar({ state, navigation, descriptors }: BottomTabBarProps) {
+  const brand = useBranding();
   const insets = useSafeAreaInsets();
   const onHeightChange = React.useContext(BottomTabBarHeightCallbackContext);
   const [pressedKey, setPressedKey] = React.useState<string | null>(null);
@@ -62,7 +64,7 @@ export function BottomTabBar({ state, navigation, descriptors }: BottomTabBarPro
               borderRadius: 18,
               paddingVertical: 8,
               paddingHorizontal: 2,
-              backgroundColor: focused ? '#2563EB' : 'transparent',
+              backgroundColor: focused ? brand.primary : 'transparent',
               opacity: pressedKey === route.key ? 0.75 : 1,
             }}
           >

@@ -1,3 +1,4 @@
+import { useBranding } from '../../theme/BrandingProvider';
 import React, { useState } from 'react';
 import { Platform, Pressable, Text, View } from 'react-native';
 import { Icon } from '../../components/Icon';
@@ -19,6 +20,7 @@ export default function CreatePrealertScreen({
   navigation,
   route,
 }: AppScreenProps<'CreatePrealert'>) {
+  const brand = useBranding();
   const create = useCreatePrealert();
   const [carrier, setCarrier] = useState('');
   const [trackingNumber, setTrackingNumber] = useState(
@@ -114,6 +116,8 @@ export default function CreatePrealertScreen({
         <Field
           icon="file-text"
           placeholder="Description"
+          keyboardType="default"
+          inputMode="text"
           value={description}
           onChangeText={setDescription}
         />
@@ -146,7 +150,7 @@ export default function CreatePrealertScreen({
         </View>
         {invoice ? (
           <View className="flex-row items-center rounded-2xl bg-primary-light border border-primary/30 px-4 py-3 mb-4">
-            <Icon name={invoice.mimeType === 'application/pdf' ? 'file-text' : 'paperclip'} size={20} color="#2563EB" />
+            <Icon name={invoice.mimeType === 'application/pdf' ? 'file-text' : 'paperclip'} size={20} color={brand.primary} />
             <Text className="flex-1 px-3 font-medium text-ink" numberOfLines={2}>{invoice.name}</Text>
             <Pressable
               onPress={() => setInvoice(null)}
@@ -155,7 +159,7 @@ export default function CreatePrealertScreen({
               accessibilityLabel="Remove attached invoice"
               className="p-3"
             >
-              <Icon name="x" size={20} color="#2563EB" />
+              <Icon name="x" size={20} color={brand.primary} />
             </Pressable>
           </View>
         ) : null}

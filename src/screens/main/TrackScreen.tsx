@@ -8,11 +8,12 @@ import { GradientScreen, ScreenHeader, EmptyView, PrimaryButton } from '../../co
 import { ItemCard } from '../../components/ItemCard';
 import { useTrack } from '../../api/hooks';
 import type { AppStackParamList, MainTabParamList } from '../../navigation/types';
+import { packageTones } from '../../theme/colors';
 
 const TABS = [
-  { key: 'readyForPickup', label: 'Ready' },
-  { key: 'inTransit', label: 'Transit' },
-  { key: 'totalShipped', label: 'Shipped' },
+  { key: 'readyForPickup', label: 'Ready', tone: 'success' },
+  { key: 'inTransit', label: 'Transit', tone: 'accent' },
+  { key: 'totalShipped', label: 'Shipped', tone: 'success' },
 ] as const;
 
 type TabKey = (typeof TABS)[number]['key'];
@@ -31,6 +32,7 @@ export default function TrackScreen() {
   }, [route.params?.tab]);
 
   const items = track.data?.[tab] ?? [];
+  const selectedTone = TABS.find((entry) => entry.key === tab)!.tone;
 
   return (
     <GradientScreen scroll={false}>
@@ -38,6 +40,7 @@ export default function TrackScreen() {
       <View className="flex-row flex-wrap gap-2 mb-4">
         {TABS.map((t) => {
           const active = tab === t.key;
+          const color = packageTones[t.tone];
           const count = track.data?.[t.key]?.length;
           return (
             <Pressable
@@ -45,10 +48,8 @@ export default function TrackScreen() {
               onPress={() => setTab(t.key)}
               accessibilityRole="tab"
               accessibilityState={{ selected: active }}
-              className={`items-center px-3 py-3 rounded-xl border ${
-                active ? 'bg-primary border-primary active:bg-primary-dark' : 'bg-white border-line active:bg-surface'
-              }`}
-              style={{ flexGrow: 1, flexBasis: 86 }}
+              className="items-center px-3 py-3 rounded-xl border active:opacity-75"
+              style={{ flexGrow: 1, flexBasis: 86, backgroundColor: active ? color.ink : '#FFFFFF', borderColor: active ? color.ink : '#E2E8F0' }}
             >
               <Text
                 className={`text-sm font-semibold text-center ${
@@ -73,7 +74,7 @@ export default function TrackScreen() {
               onRefresh={() => track.refetch()}
             />
           }
-          ListEmptyComponent={<EmptyView message="No packages here yet" />}
+          ListEmptyComponent={<EmptyView message="No packages here yet" tone={selectedTone === 'accent' ? 'amber' : 'teal'} />}
           ListHeaderComponent={tab === 'readyForPickup' && track.data?.fygaroPayment ? (
             <PrimaryButton
               title="Make Payment"

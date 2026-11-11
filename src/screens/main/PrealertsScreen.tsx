@@ -10,11 +10,13 @@ import {
   GradientScreen,
   Card,
   EmptyView,
+  IconTile,
   money,
   tabularNums,
 } from '../../components/ui';
 import { usePrealerts } from '../../api/hooks';
 import type { AppStackParamList } from '../../navigation/types';
+import { featureTones } from '../../theme/colors';
 
 export default function PrealertsScreen() {
   const tabBarHeight = useBottomTabBarHeight();
@@ -37,11 +39,12 @@ export default function PrealertsScreen() {
               onRefresh={() => prealerts.refetch()}
             />
           }
-          ListEmptyComponent={<EmptyView message="No prealerts yet" />}
+          ListEmptyComponent={<EmptyView message="No prealerts yet" icon="bell" tone={featureTones.prealerts} />}
           renderItem={({ item }) => (
             <Card className="mb-4">
               <View className="flex-row items-center justify-between mb-3">
-                <View className="flex-1">
+                <IconTile icon="bell" tint={featureTones.prealerts} size="sm" />
+                <View className="flex-1 mx-3">
                   <Text className="text-lg font-semibold text-ink">{item.carrier}</Text>
                   <Text className="font-normal text-muted">{item.tracking_number}</Text>
                 </View>

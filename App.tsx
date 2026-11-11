@@ -4,6 +4,7 @@ import { ActivityIndicator, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { BrandingProvider } from './src/theme/BrandingProvider';
 import RootNavigator from './src/navigation';
 import { useAuth } from './src/store/auth';
 import OfficePushManager from './src/notifications/OfficePushManager';
@@ -38,14 +39,16 @@ export default function App() {
   }
 
   return (
-    <SafeAreaProvider>
-      <QueryClientProvider client={queryClient}>
-        <StatusBar style="dark" />
-        <RootNavigator />
-        <OfficePushManager />
-        <MobileAccessManager />
-        <AppUpdateManager />
-      </QueryClientProvider>
-    </SafeAreaProvider>
+    <BrandingProvider>
+      <SafeAreaProvider>
+        <QueryClientProvider client={queryClient}>
+          <StatusBar style="dark" />
+          <RootNavigator />
+          <OfficePushManager />
+          <MobileAccessManager />
+          <AppUpdateManager />
+        </QueryClientProvider>
+      </SafeAreaProvider>
+    </BrandingProvider>
   );
 }

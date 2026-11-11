@@ -6,10 +6,10 @@ module.exports = {
     extend: {
       colors: {
         primary: {
-          DEFAULT: '#2563EB',
-          dark: '#1D4ED8',
-          light: '#EFF6FF',
-          soft: '#DBEAFE',
+          DEFAULT: 'rgb(var(--brand-primary, 37 99 235) / <alpha-value>)',
+          dark: 'rgb(var(--brand-primary-dark, 29 78 216) / <alpha-value>)',
+          light: 'rgb(var(--brand-primary-light, 239 246 255) / <alpha-value>)',
+          soft: 'rgb(var(--brand-primary-soft, 219 234 254) / <alpha-value>)',
         },
         navy: {
           DEFAULT: '#0B1633',
@@ -18,10 +18,10 @@ module.exports = {
           muted: '#8DA2CE',
         },
         accent: {
-          DEFAULT: '#F97316',
-          dark: '#C2410C',
-          light: '#FFF7ED',
-          soft: '#FFEDD5',
+          DEFAULT: 'rgb(var(--brand-accent, 194 65 12) / <alpha-value>)',
+          dark: 'rgb(var(--brand-accent-dark, 194 65 12) / <alpha-value>)',
+          light: 'rgb(var(--brand-accent-light, 255 247 237) / <alpha-value>)',
+          soft: 'rgb(var(--brand-accent-soft, 255 237 213) / <alpha-value>)',
         },
         success: {
           DEFAULT: '#059669',

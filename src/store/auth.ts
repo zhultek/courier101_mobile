@@ -5,6 +5,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
 import type { CourierInfo, User } from '../api/types';
 import { createAppFailure, recordAppFailure } from '../utils/appErrors';
+import { normalizeAppearance } from '../theme/branding';
 
 const TOKEN_KEY = 'courier101_token';
 let sessionRevision = 0;
@@ -31,6 +32,7 @@ function savedCourier(value: unknown): CourierInfo | null {
   if (!record(value) || typeof value.code !== 'string' || !value.code.trim()
     || !Number.isInteger(value.courier_id) || Number(value.courier_id) <= 0) return null;
   return {
+    appearance: normalizeAppearance(value.appearance),
     code: value.code, courier_id: value.courier_id as number,
     logo_url: typeof value.logo_url === 'string' ? value.logo_url : null,
     delivery_enabled: typeof value.delivery_enabled === 'boolean' ? value.delivery_enabled : undefined,

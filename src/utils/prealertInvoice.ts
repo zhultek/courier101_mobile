@@ -38,10 +38,23 @@ export async function appendInvoice(form: FormData, attachment: InvoiceAttachmen
     if (file.size > MAX_INVOICE_BYTES) throw new Error('Your invoice must be 10 MB or smaller.');
     form.append('invoice[]', file, attachment.name);
   } else {
+    // SDK 57 uses expo/fetch globally, whose multipart encoder rejects RN URI
+    // descriptors. Read the cached file before the request so local file errors
+    // aren't reported as an internet connection failure.
+    const { File } = await import('expo-file-system');
+    let bytes: Uint8Array;
+    try {
+      bytes = await new File(attachment.uri).bytes();
+    } catch {
+      throw new Error('Unable to read your invoice. Please attach the file again.');
+    }
+    if (bytes.byteLength > MAX_INVOICE_BYTES) throw new Error('Your invoice must be 10 MB or smaller.');
+    // Expo's encoder supports byte-backed files, including their name and MIME
+    // type. Keep the picker metadata rather than the generated cache filename.
     form.append('invoice[]', {
-      uri: attachment.uri,
       name: attachment.name,
       type: attachment.mimeType,
+      bytes: async () => bytes,
     } as unknown as Blob);
   }
 }

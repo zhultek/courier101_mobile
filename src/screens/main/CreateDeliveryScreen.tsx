@@ -1,3 +1,4 @@
+import { useBranding } from '../../theme/BrandingProvider';
 import React, { useState } from 'react';
 import QueryContent from '../../components/QueryContent';
 import {Pressable, Text, View } from 'react-native';
@@ -24,6 +25,7 @@ import { confirmAction, notify } from '../../utils/dialogs';
 export default function CreateDeliveryScreen({
   navigation,
 }: AppScreenProps<'CreateDelivery'>) {
+  const brand = useBranding();
   const create = useCreateDelivery();
   const locations = useDeliveryLocations();
   const track = useTrack();
@@ -141,7 +143,7 @@ export default function CreateDeliveryScreen({
                   <Icon
                     name={selected ? 'check-circle' : 'circle'}
                     size={20}
-                    color={selected ? '#2563EB' : '#94A3B8'}
+                    color={selected ? brand.primary : '#94A3B8'}
                   />
                   <View className="ml-3 flex-1">
                     <Text className="text-ink font-semibold">{item.warehouse_code}</Text>

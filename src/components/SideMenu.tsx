@@ -1,3 +1,5 @@
+import { useBranding, useBrandingStyle } from '../theme/BrandingProvider';
+import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Animated,
@@ -5,6 +7,7 @@ import {
   Image,
   Modal,
   Pressable,
+  ScrollView,
   Text,
   View,
 } from 'react-native';
@@ -15,6 +18,7 @@ import { useAuth } from '../store/auth';
 import { useLogout } from '../api/hooks';
 import { navigate } from '../navigation/ref';
 import type { AppStackParamList } from '../navigation/types';
+import { colorTones, featureTones, type ColorTone } from '../theme/colors';
 
 const PANEL_WIDTH = Math.min(300, Dimensions.get('window').width * 0.8);
 const APP_VERSION = require('../../package.json').version as string;
@@ -23,21 +27,25 @@ const MENU_ITEMS: {
   icon: IconName;
   label: string;
   screen: keyof AppStackParamList;
+  tone: ColorTone;
 }[] = [
-  { icon: 'user-circle', label: 'Account', screen: 'Profile' },
-  { icon: 'id-card', label: 'Edit profile', screen: 'EditProfile' },
-  { icon: 'coins', label: 'Rates', screen: 'Rates' },
-  { icon: 'calculator', label: 'Calculator', screen: 'Calculator' },
-  { icon: 'users-three', label: 'Authorized users', screen: 'AuthorizedUsers' },
-  { icon: 'key', label: 'Change password', screen: 'ChangePassword' },
+  { icon: 'user-circle', label: 'Account', screen: 'Profile', tone: featureTones.account },
+  { icon: 'id-card', label: 'Edit profile', screen: 'EditProfile', tone: featureTones.account },
+  { icon: 'coins', label: 'Rates', screen: 'Rates', tone: featureTones.rates },
+  { icon: 'calculator', label: 'Calculator', screen: 'Calculator', tone: featureTones.calculator },
+  { icon: 'users-three', label: 'Authorized users', screen: 'AuthorizedUsers', tone: featureTones.authorizedUsers },
+  { icon: 'key', label: 'Change password', screen: 'ChangePassword', tone: featureTones.account },
 ];
 
 export function SideMenu() {
+  const brand = useBranding();
+  const brandStyle = useBrandingStyle();
   const insets = useSafeAreaInsets();
   const menuOpen = useUi((s) => s.menuOpen);
   const closeMenu = useUi((s) => s.closeMenu);
   const user = useAuth((s) => s.user);
   const courier = useAuth((s) => s.courier);
+  const logoUrl = courier?.logo_url;
   const logout = useLogout();
 
   // Keep the Modal mounted while the close animation plays out.
@@ -73,7 +81,7 @@ export function SideMenu() {
 
   return (
     <Modal visible transparent animationType="none" onRequestClose={closeMenu}>
-      <View style={{ flex: 1, flexDirection: 'row' }}>
+      <View style={[{ flex: 1, flexDirection: 'row' }, brandStyle]}>
         <Animated.View
           style={{
             width: PANEL_WIDTH,
@@ -89,16 +97,16 @@ export function SideMenu() {
           {/* Header: courier logo, close, user identity */}
           <View className="px-5 pb-4">
             <View className="flex-row items-start justify-between">
-              {courier?.logo_url ? (
+              {logoUrl ? (
                 <Image
-                  source={{ uri: courier.logo_url }}
-                  className="h-14 w-40"
+                  source={{ uri: logoUrl }}
+                  style={{ height: 56, width: 160, backgroundColor: 'transparent' }}
                   resizeMode="contain"
                 />
               ) : (
                 <Image
                   source={require('../../assets/logo.png')}
-                  className="h-14 w-40"
+                  style={{ height: 56, width: 160, backgroundColor: 'transparent' }}
                   resizeMode="contain"
                 />
               )}
@@ -111,7 +119,7 @@ export function SideMenu() {
               </Pressable>
             </View>
 
-            <View className="mt-4 rounded-3xl bg-surface p-4">
+            <LinearGradient colors={[brand.headerStart, brand.headerEnd]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ marginTop: 16, borderRadius: 24, padding: 16 }}>
               <View className="flex-row items-center">
                 <View className="w-12 h-12 rounded-2xl bg-primary items-center justify-center">
                   <Text className="text-white font-bold text-base">
@@ -119,39 +127,39 @@ export function SideMenu() {
                   </Text>
                 </View>
                 <View className="ml-3 flex-1">
-                  <Text className="text-ink font-semibold text-base" numberOfLines={1}>
+                  <Text className="text-white font-semibold text-base" numberOfLines={1}>
                     {user?.first_name} {user?.last_name}
                   </Text>
-                  <Text className="font-normal text-muted text-[13px]" numberOfLines={1}>
+                  <Text className="font-normal text-white text-[13px]" numberOfLines={1}>
                     {user?.email}
                   </Text>
                 </View>
               </View>
               <View className="mt-3 flex-row items-center rounded-2xl bg-white px-3.5 py-2.5">
-                <Icon name="mailbox" size={18} color="#F97316" />
+                <Icon name="mailbox" size={18} color={brand.accent} />
                 <Text className="ml-2 font-medium text-muted text-[13px]">Mailbox</Text>
                 <Text className="flex-1 text-right font-bold text-ink text-[15px]">
                   {user?.mailbox}
                 </Text>
               </View>
-            </View>
+            </LinearGradient>
           </View>
 
           {/* Menu items */}
-          <View className="flex-1 py-2">
+          <ScrollView className="flex-1" contentContainerStyle={{ paddingVertical: 8 }}>
             {MENU_ITEMS.map((item) => (
               <Pressable
                 key={item.screen}
                 onPress={() => go(item.screen)}
                 className="flex-row items-center px-5 py-4 active:bg-surface"
               >
-                <View className="w-10 h-10 rounded-xl bg-primary-light items-center justify-center">
-                  <Icon name={item.icon} size={18} color="#2563EB" />
+                <View className="w-10 h-10 rounded-xl items-center justify-center" style={{ backgroundColor: item.tone === 'blue' ? brand.primaryLight : colorTones[item.tone].surface }}>
+                  <Icon name={item.icon} size={18} color={item.tone === 'blue' ? brand.primary : colorTones[item.tone].ink} />
                 </View>
                 <Text className="ml-4 text-base text-ink font-medium">{item.label}</Text>
               </Pressable>
             ))}
-          </View>
+          </ScrollView>
 
           {/* Footer: version + logout */}
           <View className="px-5 border-t border-line">

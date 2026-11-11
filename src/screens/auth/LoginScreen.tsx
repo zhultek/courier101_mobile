@@ -20,6 +20,7 @@ type FormValues = z.infer<typeof schema>;
 export default function LoginScreen({ navigation }: AuthScreenProps<'Login'>) {
   const login = useLogin();
   const courier = useAuth((s) => s.courier);
+  const logoUrl = courier?.logo_url;
   const clearCourier = useAuth((s) => s.clearCourier);
   const [serverError, setServerError] = useState<string | null>(null);
 
@@ -43,11 +44,11 @@ export default function LoginScreen({ navigation }: AuthScreenProps<'Login'>) {
       <View className="items-center mt-8">
         <Image
           source={
-            courier?.logo_url
-              ? { uri: courier.logo_url }
+            logoUrl
+              ? { uri: logoUrl }
               : require('../../../assets/logo.png')
           }
-          className="w-44 h-16"
+          style={{ width: 176, height: 64, backgroundColor: 'transparent' }}
           resizeMode="contain"
         />
       </View>

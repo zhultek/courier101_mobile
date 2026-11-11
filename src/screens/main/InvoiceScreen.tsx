@@ -1,3 +1,4 @@
+import { useBranding } from '../../theme/BrandingProvider';
 import React, { useState } from 'react';
 import QueryContent from '../../components/QueryContent';
 import {
@@ -124,6 +125,7 @@ function PackageDetail({ label, value }: { label: string; value: string }) {
 }
 
 export default function InvoiceScreen({ navigation, route }: AppScreenProps<'Invoice'>) {
+  const brand = useBranding();
   const invoice = useInvoice(route.params.id);
   const authCourier = useAuth((s) => s.courier);
   const { fontScale } = useWindowDimensions();
@@ -185,7 +187,7 @@ export default function InvoiceScreen({ navigation, route }: AppScreenProps<'Inv
             accessibilityState={{ disabled: downloading, busy: downloading }}
             className="min-h-[44px] min-w-[72px] flex-row items-center justify-center rounded-xl bg-white border border-line px-3 active:opacity-60"
           >
-            {downloading ? <ActivityIndicator size="small" color="#2563EB" /> : <Icon name="download-cloud" size={19} color="#2563EB" />}
+            {downloading ? <ActivityIndicator size="small" color={brand.primary} /> : <Icon name="download-cloud" size={19} color={brand.primary} />}
             <Text className="text-primary font-semibold text-sm ml-2">{downloading ? 'Preparing…' : 'PDF'}</Text>
           </Pressable>
         }
@@ -246,7 +248,7 @@ export default function InvoiceScreen({ navigation, route }: AppScreenProps<'Inv
           <Card className="mb-4">
             <View className="flex-row items-start mb-4">
               <View className="w-10 h-10 rounded-xl bg-primary-light items-center justify-center mr-3">
-                <Icon name="package" size={21} color="#2563EB" />
+                <Icon name="package" size={21} color={brand.primary} />
               </View>
               <View className="flex-1 min-w-0">
                 <Text accessibilityRole="header" className="text-base font-semibold text-ink leading-[23px]">{item.description || 'Package details'}</Text>
@@ -310,7 +312,7 @@ export default function InvoiceScreen({ navigation, route }: AppScreenProps<'Inv
         {courier?.invoice_note ? (
           <View className="rounded-[20px] bg-primary-light border border-primary-soft p-4 mb-4">
             <View className="flex-row items-center mb-2">
-              <Icon name="credit-card" size={18} color="#2563EB" />
+              <Icon name="credit-card" size={18} color={brand.primary} />
               <Text accessibilityRole="header" className="text-sm font-semibold text-ink ml-2 flex-shrink">Payment information</Text>
             </View>
             <Text selectable className="text-sm text-muted leading-6">{courier.invoice_note}</Text>

@@ -1,3 +1,4 @@
+import { useBranding, useBrandingStyle } from '../theme/BrandingProvider';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
@@ -19,6 +20,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Icon, IconName } from './Icon';
 import { useUi } from '../store/ui';
+import { colorTones, packageTones, type ColorTone } from '../theme/colors';
 
 /**
  * Split an amount into sign / comma-grouped dollars / cents.
@@ -77,9 +79,10 @@ export function GradientScreen({
   children: React.ReactNode;
   scroll?: boolean;
 }) {
+  const brand = useBranding();
   return (
     <LinearGradient
-      colors={['#F4F7FC', '#F8FAFC', '#F8FAFC']}
+      colors={[brand.canvas, brand.canvasEnd, brand.canvasEnd]}
       start={{ x: 0.5, y: 0 }}
       end={{ x: 0.5, y: 0.55 }}
       style={{ flex: 1 }}
@@ -123,6 +126,7 @@ const fieldStateStyle = {
 } as const;
 
 export function Field({ icon, error, label, onFocus, onBlur, ...props }: FieldProps) {
+  const brand = useBranding();
   const [focused, setFocused] = useState(false);
   const state = error ? 'error' : focused ? 'focused' : 'idle';
   return (
@@ -132,10 +136,10 @@ export function Field({ icon, error, label, onFocus, onBlur, ...props }: FieldPr
       ) : null}
       <View
         className="flex-row items-center rounded-2xl px-4 py-1 border-[1.5px]"
-        style={[fieldStateStyle[state], focused ? cardShadow : null]}
+        style={[fieldStateStyle[state], focused && !error ? { borderColor: brand.primary } : null, focused ? cardShadow : null]}
       >
         {icon ? (
-          <Icon name={icon} size={20} color={focused ? '#2563EB' : '#94A3B8'} />
+          <Icon name={icon} size={20} color={focused ? brand.primary : '#94A3B8'} />
         ) : null}
         <TextInput
           className="flex-1 py-3.5 px-3 text-base font-normal text-ink"
@@ -166,6 +170,7 @@ export function PasswordField({
   onBlur,
   ...props
 }: FieldProps) {
+  const brand = useBranding();
   const [visible, setVisible] = useState(false);
   const [focused, setFocused] = useState(false);
   const state = error ? 'error' : focused ? 'focused' : 'idle';
@@ -176,9 +181,9 @@ export function PasswordField({
       ) : null}
       <View
         className="flex-row items-center rounded-2xl px-4 py-1 border-[1.5px]"
-        style={[fieldStateStyle[state], focused ? cardShadow : null]}
+        style={[fieldStateStyle[state], focused && !error ? { borderColor: brand.primary } : null, focused ? cardShadow : null]}
       >
-        <Icon name={icon} size={20} color={focused ? '#2563EB' : '#94A3B8'} />
+        <Icon name={icon} size={20} color={focused ? brand.primary : '#94A3B8'} />
         <TextInput
           className="flex-1 py-3.5 px-3 text-base font-normal text-ink"
           placeholderTextColor="#94A3B8"
@@ -278,6 +283,7 @@ export function SectionLabel({
   onAction?: () => void;
   className?: string;
 }) {
+  const brand = useBranding();
   return (
     <View className={`flex-row flex-wrap items-center justify-between gap-x-3 mb-3 ${className}`}>
       <Text className="flex-1 font-semibold text-ink text-[18px]" style={{ minWidth: 140 }}>
@@ -292,7 +298,7 @@ export function SectionLabel({
           className="min-h-[44px] flex-row items-center"
         >
           <Text className="text-primary font-semibold text-sm mr-1">{action}</Text>
-          <Icon name="arrow-right" size={15} color="#2563EB" />
+          <Icon name="arrow-right" size={15} color={brand.primary} />
         </Pressable>
       ) : null}
     </View>
@@ -306,20 +312,22 @@ export function IconTile({
   size = 'md',
 }: {
   icon: IconName;
-  tint?: 'primary' | 'accent' | 'success' | 'navy';
+  tint?: ColorTone | 'primary' | 'accent' | 'success' | 'navy';
   size?: 'sm' | 'md';
 }) {
+  const brand = useBranding();
   const tints = {
-    primary: { bg: 'bg-primary-light', color: '#2563EB' },
-    accent: { bg: 'bg-accent-light', color: '#F97316' },
-    success: { bg: 'bg-success-light', color: '#059669' },
-    navy: { bg: 'bg-navy', color: '#FFFFFF' },
+    ...colorTones,
+    ...packageTones,
+    primary: { surface: brand.primaryLight, ink: brand.primary },
+    accent: { surface: brand.accentLight, ink: brand.accent },
+    navy: { surface: '#0B1633', ink: '#FFFFFF' },
   } as const;
   const t = tints[tint];
   const box = size === 'sm' ? 'w-10 h-10 rounded-xl' : 'w-12 h-12 rounded-2xl';
   return (
-    <View className={`${box} ${t.bg} items-center justify-center`}>
-      <Icon name={icon} size={size === 'sm' ? 18 : 21} color={t.color} />
+    <View className={`${box} items-center justify-center`} style={{ backgroundColor: t.surface }}>
+      <Icon name={icon} size={size === 'sm' ? 18 : 21} color={t.ink} />
     </View>
   );
 }
@@ -362,6 +370,8 @@ export function SelectField({
   error?: string;
   compact?: boolean;
 }) {
+  const brand = useBranding();
+  const brandStyle = useBrandingStyle();
   const [open, setOpen] = useState(false);
   const selected = options.find((o) => o.value === value);
   return (
@@ -387,7 +397,7 @@ export function SelectField({
         <Text className="mt-1.5 ml-1 text-[13px] font-medium text-danger">{error}</Text>
       ) : null}
       <Modal visible={open} animationType="slide" transparent>
-        <Pressable className="flex-1 bg-navy/60" onPress={() => setOpen(false)}>
+        <Pressable style={brandStyle} className="flex-1 bg-navy/60" onPress={() => setOpen(false)}>
           <View className="mt-auto rounded-t-[28px] bg-white p-5 max-h-[70%]">
             <View className="self-center w-10 h-1 rounded-full bg-line mb-4" />
             <Text className="text-lg font-semibold text-ink mb-3">{placeholder}</Text>
@@ -414,7 +424,7 @@ export function SelectField({
                     {item.label}
                   </Text>
                   {item.value === value ? (
-                    <Icon name="check" size={18} color="#2563EB" />
+                    <Icon name="check" size={18} color={brand.primary} />
                   ) : null}
                 </Pressable>
               )}
@@ -428,11 +438,9 @@ export function SelectField({
 
 /** Tones for StatusChip; each pairs a tinted pill with a solid dot. */
 const chipTones = {
-  primary: { bg: 'bg-primary-light', text: 'text-primary', dot: '#2563EB' },
-  accent: { bg: 'bg-accent-light', text: 'text-accent', dot: '#F97316' },
-  success: { bg: 'bg-success-light', text: 'text-success', dot: '#059669' },
-  danger: { bg: 'bg-danger-light', text: 'text-danger', dot: '#DC2626' },
-  neutral: { bg: 'bg-surface', text: 'text-muted', dot: '#64748B' },
+  ...packageTones,
+  danger: { surface: '#FEF2F2', ink: '#DC2626' },
+  neutral: { surface: '#F1F5F9', ink: '#475569' },
 } as const;
 
 /** Small status pill with a leading dot indicator. */
@@ -448,13 +456,14 @@ export function StatusChip({
   const t = chipTones[tone];
   return (
     <View
-      className={`self-start flex-row items-center rounded-full px-3 py-1.5 ${t.bg} ${className}`}
+      className={`self-start flex-row items-center rounded-full px-3 py-1.5 ${className}`}
+      style={{ backgroundColor: t.surface }}
     >
       <View
         className="w-1.5 h-1.5 rounded-full mr-2"
-        style={{ backgroundColor: t.dot }}
+        style={{ backgroundColor: t.ink }}
       />
-      <Text className={`font-semibold text-[13px] ${t.text}`}>{label}</Text>
+      <Text className="font-semibold text-[13px]" style={{ color: t.ink }}>{label}</Text>
     </View>
   );
 }
@@ -509,11 +518,12 @@ export function LoadingView() {
   );
 }
 
-export function EmptyView({ message }: { message: string }) {
+export function EmptyView({ message, icon = 'package', tone = 'blue' }: { message: string; icon?: IconName; tone?: ColorTone }) {
+  const color = colorTones[tone];
   return (
     <View className="items-center justify-center py-14">
-      <View className="w-20 h-20 rounded-[28px] bg-primary-light items-center justify-center mb-4 rotate-6">
-        <Icon name="package" size={30} color="#2563EB" />
+      <View className="w-20 h-20 rounded-[28px] items-center justify-center mb-4 rotate-6" style={{ backgroundColor: color.surface }}>
+        <Icon name={icon} size={30} color={color.ink} />
       </View>
       <Text className="font-semibold text-ink text-base">{message}</Text>
       <Text className="font-normal text-faint text-sm leading-5 mt-1">
